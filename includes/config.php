@@ -1,25 +1,21 @@
 <?php
-// ============================================================
-//  includes/config.php
-// ============================================================
-define('DB_HOST',     'localhost');
-define('DB_NAME',     '');
-define('DB_USER',     '');        // DB username
-define('DB_PASS',     '');   // DB password
-define('DB_CHARSET',  'utf8mb4');
-
+define('DB_HOST',    'localhost');
+define('DB_NAME',    'pms_db');
+define('DB_USER',    'pms_user');
+define('DB_PASS',    'YOUR_DB_PASSWORD');
+define('DB_CHARSET', 'utf8mb4');
 define('UPLOAD_DIR', __DIR__ . '/../uploads/');
 define('UPLOAD_URL', 'uploads/');
 define('MAX_FILE_MB', 10);
 define('APP_NAME',   'PMS');
 define('APP_BRAND',  'PMS By Mingosoft Technologies');
-define('APP_VER',    '3.0');
+define('APP_VER',    '4.0');
 define('SESSION_LIFETIME', 3600 * 8);
 define('PLAN_BASIC_MONTHLY',    500);
 define('PLAN_BASIC_YEARLY',    5000);
 define('PLAN_ADVANCE_MONTHLY', 1200);
 define('PLAN_ADVANCE_YEARLY', 12000);
- 
+
 function db(): PDO {
     static $pdo = null;
     if ($pdo === null) {
