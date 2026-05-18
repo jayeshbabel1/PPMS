@@ -1,146 +1,111 @@
 <?php
 // ============================================================
-//  includes/mailer.php  — Email via SMTP (no Composer needed)
+//  includes/mailer.php — Simple SMTP mailer (no Composer)
 // ============================================================
-require_once __DIR__.'/auth.php';
 
-/**
- * Send an email using PHP's built-in mail() or a simple SMTP socket connection.
- * Settings read from app_settings table.
- */
-function pms_mail(string $to, string $subject, string $bodyHtml, string $bodyText=''): bool {
-    $host   = get_setting('mail_host','');
-    $port   = (int)get_setting('mail_port','587');
-    $user   = get_setting('mail_user','');
-    $pass   = get_setting('mail_pass','');
-    $from   = get_setting('mail_from', $user);
-    $fromNm = get_setting('mail_from_name', APP_BRAND);
-    $method = get_setting('mail_method','smtp'); // smtp | mail
+function pms_mail(string $to, string $subject, string $htmlBody, string $replyTo = ''): bool {
+    $method   = get_setting('mail_method',    'smtp');
+    $host     = get_setting('mail_host',      '');
+    $port     = (int)get_setting('mail_port', '587');
+    $user     = get_setting('mail_user',      '');
+    $pass     = get_setting('mail_pass',      '');
+    $from     = get_setting('mail_from',      '');
+    $fromName = get_setting('mail_from_name', APP_BRAND);
 
-    if (!$to) return false;
-    if ($bodyText==='') $bodyText=strip_tags($bodyHtml);
-    $boundary='PMS_BOUND_'.md5(time());
-
-    if ($method==='mail' || $host==='') {
-        // Native PHP mail()
-        $headers  = "From: $fromNm <$from>\r\n";
-        $headers .= "MIME-Version: 1.0\r\n";
-        $headers .= "Content-Type: multipart/alternative; boundary=\"$boundary\"\r\n";
-        $body  = "--$boundary\r\n";
-        $body .= "Content-Type: text/plain; charset=UTF-8\r\n\r\n$bodyText\r\n";
-        $body .= "--$boundary\r\n";
-        $body .= "Content-Type: text/html; charset=UTF-8\r\n\r\n$bodyHtml\r\n";
-        $body .= "--$boundary--";
-        return @mail($to, $subject, $body, $headers);
+    if ($method === 'php' || empty($host)) {
+        // Fallback: PHP mail()
+        $headers  = "MIME-Version: 1.0\r\n";
+        $headers .= "Content-type: text/html; charset=UTF-8\r\n";
+        $headers .= "From: $fromName <$from>\r\n";
+        if ($replyTo) $headers .= "Reply-To: $replyTo\r\n";
+        return mail($to, $subject, $htmlBody, $headers);
     }
 
-    // SMTP socket (no extensions required)
-    try {
-        $enc = ($port===465) ? 'ssl' : 'tcp';
-        $ctx = stream_context_create(['ssl'=>['verify_peer'=>false,'verify_peer_name'=>false]]);
-        $sock = ($enc==='ssl')
-            ? @stream_socket_client("ssl://$host:$port", $errno, $errstr, 10, STREAM_CLIENT_CONNECT, $ctx)
-            : @stream_socket_client("tcp://$host:$port", $errno, $errstr, 10);
-        if (!$sock) return false;
+    // SMTP via PHP streams
+    $boundary = md5(uniqid((string)time()));
+    $body = "--{$boundary}\r\n"
+          . "Content-Type: text/html; charset=UTF-8\r\n"
+          . "Content-Transfer-Encoding: base64\r\n\r\n"
+          . chunk_split(base64_encode($htmlBody))."\r\n"
+          . "--{$boundary}--\r\n";
 
-        $r = function() use ($sock) { return fgets($sock,512); };
-        $w = function(string $cmd) use ($sock) { fwrite($sock,"$cmd\r\n"); };
+    $headers  = "From: =?UTF-8?B?".base64_encode($fromName)."?= <{$from}>\r\n";
+    $headers .= "To: <{$to}>\r\n";
+    $headers .= "Subject: =?UTF-8?B?".base64_encode($subject)."?=\r\n";
+    $headers .= "MIME-Version: 1.0\r\n";
+    $headers .= "Content-Type: multipart/alternative; boundary=\"{$boundary}\"\r\n";
+    if ($replyTo) $headers .= "Reply-To: <{$replyTo}>\r\n";
+    $headers .= "Date: ".date('r')."\r\n";
+    $headers .= "Message-ID: <".time()."@".(parse_url((string)($_SERVER['HTTP_HOST']??'pms.local'), PHP_URL_HOST)??'pms.local').">\r\n";
 
-        $r(); // greeting
-        $w("EHLO ".gethostname()); smtp_read_all($sock);
+    // Connect
+    $prefix = ($port === 465) ? 'ssl://' : '';
+    $ctx = stream_context_create(['ssl' => ['verify_peer'=>false,'verify_peer_name'=>false]]);
+    $conn = @stream_socket_client("{$prefix}{$host}:{$port}", $errno, $errstr, 10, STREAM_CLIENT_CONNECT, $ctx);
+    if (!$conn) throw new RuntimeException("SMTP connect failed: $errstr ($errno)");
 
-        if ($port===587) { // STARTTLS
-            $w('STARTTLS'); $r();
-            stream_socket_enable_crypto($sock,true,STREAM_CRYPTO_METHOD_TLS_CLIENT);
-            $w("EHLO ".gethostname()); smtp_read_all($sock);
+    $smtp_read = function() use ($conn): string {
+        $buf = '';
+        while ($line = fgets($conn, 512)) {
+            $buf .= $line;
+            if ($line[3] === ' ') break; // end of multi-line
         }
+        return $buf;
+    };
+    $smtp_cmd = function(string $cmd) use ($conn, $smtp_read): string {
+        fwrite($conn, $cmd."\r\n");
+        return $smtp_read();
+    };
 
-        if ($user) {
-            $w('AUTH LOGIN'); $r();
-            $w(base64_encode($user)); $r();
-            $w(base64_encode($pass)); $resp=$r();
-            if (strpos($resp,'235')===false) { fclose($sock); return false; }
-        }
+    $smtp_read(); // banner
+    $smtp_cmd("EHLO ".(gethostname()?:'localhost'));
 
-        $w("MAIL FROM:<$from>"); $r();
-        foreach(array_map('trim',explode(',',$to)) as $t) { $w("RCPT TO:<$t>"); $r(); }
-        $w('DATA'); $r();
-
-        $msg  = "From: $fromNm <$from>\r\n";
-        $msg .= "To: $to\r\n";
-        $msg .= "Subject: =?UTF-8?B?".base64_encode($subject)."?=\r\n";
-        $msg .= "MIME-Version: 1.0\r\n";
-        $msg .= "Content-Type: multipart/alternative; boundary=\"$boundary\"\r\n\r\n";
-        $msg .= "--$boundary\r\n";
-        $msg .= "Content-Type: text/plain; charset=UTF-8\r\n\r\n$bodyText\r\n";
-        $msg .= "--$boundary\r\n";
-        $msg .= "Content-Type: text/html; charset=UTF-8\r\n\r\n$bodyHtml\r\n";
-        $msg .= "--$boundary--\r\n";
-        $w($msg."\r\n."); $r();
-        $w('QUIT'); fclose($sock);
-        return true;
-    } catch (\Throwable $e) {
-        error_log('PMS mailer error: '.$e->getMessage());
-        return false;
+    if ($port === 587) {
+        $smtp_cmd("STARTTLS");
+        stream_socket_enable_crypto($conn, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
+        $smtp_cmd("EHLO ".(gethostname()?:'localhost'));
     }
+
+    if ($user && $pass) {
+        $smtp_cmd("AUTH LOGIN");
+        $smtp_cmd(base64_encode($user));
+        $smtp_cmd(base64_encode($pass));
+    }
+
+    $smtp_cmd("MAIL FROM:<{$from}>");
+    $smtp_cmd("RCPT TO:<{$to}>");
+    $smtp_cmd("DATA");
+    fwrite($conn, $headers."\r\n".$body."\r\n.\r\n");
+    $smtp_read();
+    $smtp_cmd("QUIT");
+    fclose($conn);
+    return true;
 }
 
-function smtp_read_all($sock): string {
-    $out='';
-    while ($line=fgets($sock,512)){$out.=$line;if($line[3]===' ')break;}
-    return $out;
-}
-
-/**
- * Send error notification to admin email.
- */
-function mail_error(string $context, string $message, string $trace=''): void {
-    $adminEmail=get_setting('mail_admin_email','');
-    $enabled=get_setting('mail_error_notify','0');
-    if(!$adminEmail||$enabled!=='1') return;
-    $html='<h2 style="color:#c00">PMS Application Error</h2>'.
-          '<p><b>Context:</b> '.htmlspecialchars($context).'</p>'.
-          '<p><b>Message:</b> '.htmlspecialchars($message).'</p>'.
-          ($trace?'<pre style="background:#f4f4f4;padding:10px;font-size:12px">'.htmlspecialchars($trace).'</pre>':'').
-          '<hr><p style="color:#888;font-size:12px">'.APP_BRAND.' — '.date('d M Y H:i:s').'</p>';
-    pms_mail($adminEmail,'[PMS Error] '.$context,$html);
-}
-
-/**
- * Send password reset email.
- */
-function mail_password_reset(string $toEmail, string $toName, string $resetLink): bool {
-    $html='<div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto">'.
-          '<h2 style="color:#81A6C6">'.APP_BRAND.'</h2>'.
-          '<h3>Password Reset Request</h3>'.
-          '<p>Hello '.htmlspecialchars($toName).',</p>'.
-          '<p>You requested a password reset. Click the button below to set a new password:</p>'.
-          '<p style="text-align:center;margin:24px 0"><a href="'.htmlspecialchars($resetLink).'" style="background:#81A6C6;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:bold">Reset Password</a></p>'.
-          '<p style="color:#888;font-size:12px">This link expires in 1 hour. If you did not request this, ignore this email.</p>'.
-          '<hr><p style="color:#aaa;font-size:11px">'.APP_BRAND.'</p></div>';
-    return pms_mail($toEmail,'Password Reset — '.APP_NAME,$html);
-}
-
-/**
- * Global PHP error handler — sends email on fatal errors.
- */
-function pms_register_error_handler(): void {
-    set_exception_handler(function(\Throwable $e) {
-        mail_error(
-            get_class($e).' in '.$e->getFile().':'.$e->getLine(),
-            $e->getMessage(),
-            $e->getTraceAsString()
-        );
-        // Re-display a user-friendly message
-        http_response_code(500);
-        echo '<div style="font-family:Arial;padding:2rem;text-align:center"><h2>Something went wrong</h2><p>The administrator has been notified. Please try again later.</p></div>';
-        exit;
-    });
-
-    register_shutdown_function(function() {
-        $err=error_get_last();
-        if ($err && in_array($err['type'],[E_ERROR,E_PARSE,E_CORE_ERROR,E_COMPILE_ERROR])) {
-            mail_error('Fatal PHP Error in '.$err['file'].':'.$err['line'], $err['message']);
-        }
-    });
+// ── Email template wrapper ─────────────────────────────────────
+function email_template(string $title, string $content): string {
+    $brand = APP_BRAND;
+    $bg    = get_setting('theme_bg','#F3E3D0');
+    $pri   = get_setting('theme_primary','#81A6C6');
+    return <<<HTML
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>$title</title></head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:Arial,Helvetica,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:30px 0">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:10px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.10)">
+  <tr><td style="background:{$pri};padding:20px 30px">
+    <h1 style="color:#ffffff;margin:0;font-size:1.3rem">{$brand}</h1>
+  </td></tr>
+  <tr><td style="padding:30px">
+    <h2 style="color:#2C3A4A;margin-top:0">{$title}</h2>
+    {$content}
+    <p style="margin-top:30px;color:#999;font-size:.8rem;border-top:1px solid #eee;padding-top:15px">
+      This is an automated message from {$brand}. Please do not reply directly to this email.
+    </p>
+  </td></tr>
+</table>
+</td></tr>
+</table>
+</body></html>
+HTML;
 }
