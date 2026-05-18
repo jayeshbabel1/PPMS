@@ -24,9 +24,10 @@ function current_user(): array {
     return ['id'=>$_SESSION['user_id']??0,'username'=>$_SESSION['username']??'',
             'full_name'=>$_SESSION['full_name']??'','role'=>$_SESSION['role']??'viewer'];
 }
-function is_admin(): bool { return current_user()['role']==='admin'; }
+function is_admin(): bool     { return current_user()['role']==='admin'; }
 function is_developer(): bool { return current_user()['role']==='developer'; }
-function is_viewer(): bool { return current_user()['role']==='viewer'; }
+function is_viewer(): bool    { return current_user()['role']==='viewer'; }
+
 function login(string $u, string $p): bool {
     $s=db()->prepare('SELECT id,username,password,full_name,role,is_active FROM users WHERE username=? LIMIT 1');
     $s->execute([$u]); $user=$s->fetch();
@@ -62,6 +63,8 @@ function csrf_verify(): void {
         http_response_code(403); die('Invalid CSRF token.');
     }
 }
+
+// ── Subscription helpers ──────────────────────────────────────
 function get_active_subscription(): ?array {
     static $cache=false;
     if ($cache!==false) return $cache?:null;
@@ -72,18 +75,41 @@ function get_active_subscription(): ?array {
     } catch(Throwable){$cache=null;}
     return $cache;
 }
-function can_view_basic(): bool  { return is_admin()||get_active_subscription()!==null; }
+function can_view_basic(): bool  { return is_admin()||is_developer()||get_active_subscription()!==null; }
 function can_view_advance(): bool {
-    if (is_admin()) return true;
+    if (is_admin()||is_developer()) return true;
     $s=get_active_subscription();
     return $s&&$s['plan_type']==='advance';
 }
 function get_plan_label(): string {
     if (is_admin()) return 'Administrator';
+    if (is_developer()) return 'Developer';
     $s=get_active_subscription();
     if (!$s) return 'No Active Plan';
     return ucfirst($s['plan_type']).' &middot; '.ucfirst($s['billing_cycle']);
 }
+
+// ── Permission check (from DB table) ─────────────────────────
+function can_do(string $feature): bool {
+    $role=current_user()['role'];
+    if ($role==='admin') return true;
+    static $permCache=[];
+    if (!isset($permCache[$feature])) {
+        try {
+            $s=db()->prepare('SELECT * FROM permissions WHERE feature=? LIMIT 1');
+            $s->execute([$feature]); $row=$s->fetch();
+            $permCache[$feature]=$row?:null;
+        } catch(Throwable){ return false; }
+    }
+    $row=$permCache[$feature];
+    if (!$row) return false;
+    if ($role==='developer') return (bool)$row['developer'];
+    $sub=get_active_subscription();
+    if (!$sub) return false;
+    return $sub['plan_type']==='advance'?(bool)$row['adv_viewer']:(bool)$row['bas_viewer'];
+}
+
+// ── Settings helpers ──────────────────────────────────────────
 function get_setting(string $key, string $default=''): string {
     try {
         $s=db()->prepare('SELECT val FROM app_settings WHERE `key`=? LIMIT 1');
@@ -95,32 +121,18 @@ function set_setting(string $key, string $val): void {
     db()->prepare('INSERT INTO app_settings(`key`,val) VALUES(?,?) ON DUPLICATE KEY UPDATE val=VALUES(val)')->execute([$key,$val]);
 }
 
-/**
- * Check if current user has a specific permission feature.
- * Falls back to role-based defaults if permissions table not populated.
- */
-function can_do(string $feature): bool {
-    $role=current_user()['role'];
-    if($role==='admin') return true; // admin always can
-    try {
-        $s=db()->prepare('SELECT `admin`,`developer`,`adv_viewer`,`bas_viewer` FROM permissions WHERE feature=? LIMIT 1');
-        $s->execute([$feature]);$row=$s->fetch();
-        if(!$row) return false;
-        if($role==='developer') return (bool)$row['developer'];
-        // viewer — check subscription
-        $sub=get_active_subscription();
-        if(!$sub) return false;
-        return $sub['plan_type']==='advance'?(bool)$row['adv_viewer']:(bool)$row['bas_viewer'];
-    } catch(Throwable){ return false; }
-}
-
-/** Get all theme CSS variable values from settings */
 function get_theme_vars(): array {
-    $defaults=['theme_primary'=>'#81A6C6','theme_bg'=>'#F3E3D0','theme_surface'=>'#FFFFFF',
-               'theme_border'=>'#D2C4B4','theme_btn_text'=>'#FFFFFF','theme_heading'=>'#2C3A4A',
-               'theme_text'=>'#4A5E70','theme_sidebar_bg'=>'#FFFFFF','theme_topbar_bg'=>'#FFFFFF',
-               'theme_c1'=>'#81A6C6','theme_c2'=>'#AACDDC','theme_c3'=>'#F3E3D0','theme_c4'=>'#D2C4B4'];
+    $defaults=[
+        'theme_primary'=>'#81A6C6','theme_bg'=>'#F3E3D0','theme_surface'=>'#FFFFFF',
+        'theme_border'=>'#D2C4B4','theme_btn_text'=>'#FFFFFF','theme_heading'=>'#2C3A4A',
+        'theme_text'=>'#4A5E70','theme_sidebar_bg'=>'#FFFFFF','theme_topbar_bg'=>'#FFFFFF',
+    ];
     $out=[];
     foreach($defaults as $k=>$def){ $out[$k]=get_setting($k,$def); }
     return $out;
+}
+
+function currentFY(): string {
+    $now=new DateTime();
+    return ($now->format('m')>=4)?$now->format('Y').'-'.substr(($now->format('Y')+1),2):($now->format('Y')-1).'-'.substr($now->format('Y'),2);
 }
