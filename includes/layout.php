@@ -497,7 +497,35 @@ body{display:flex;align-items:center;justify-content:center;min-height:100vh;pad
     </div>
     <?php endif; ?>
 
-    <!-- Stats -->
+        <!-- Sponsored Strip -->
+    <?php if (!empty($sponsoredPlans ?? [])): ?>
+    <div style="margin-bottom:1.4rem;background:linear-gradient(135deg,#fffbf0,#fff8e8);border:2px solid #e8c87a;border-radius:14px;padding:1.1rem 1.3rem">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:.9rem">
+        <span style="background:#d4a017;color:#fff;padding:3px 12px;border-radius:100px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em">
+          <i class="bx bxs-star"></i> Featured Properties
+        </span>
+        <div style="height:1px;flex:1;background:#e8c87a"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px">
+        <?php foreach (($sponsoredPlans ?? []) as $sp): ?>
+        <a href="index.php?page=view&id=<?= $sp['id'] ?>" style="background:#fff;border:1px solid #e8c87a;border-radius:10px;overflow:hidden;display:block;transition:all .15s;text-decoration:none">
+          <?php if ($sp['file_type']==='image' && $sp['file_path']): ?>
+          <div style="height:80px;overflow:hidden"><img src="<?= e($sp['file_path']) ?>" alt="" style="width:100%;height:100%;object-fit:cover"></div>
+          <?php else: ?>
+          <div style="height:60px;background:#fef9ee;display:flex;align-items:center;justify-content:center;font-size:1.8rem;color:#d4a017"><i class="bx bx-buildings"></i></div>
+          <?php endif; ?>
+          <div style="padding:8px 10px">
+            <div style="font-size:.81rem;font-weight:700;color:#2c3a4a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?= e($sp['plan_name']) ?></div>
+            <?php if ($sp['village_name']): ?><div style="font-size:.68rem;color:#7a8f9e;margin-top:1px"><i class="bx bx-map-pin"></i> <?= e($sp['village_name']) ?></div><?php endif; ?>
+            <div style="font-size:.64rem;color:#d4a017;font-weight:700;margin-top:3px"><i class="bx bxs-star"></i> <?= e($sp['sponsored_label'] ?? 'Featured') ?></div>
+          </div>
+        </a>
+        <?php endforeach; ?>
+      </div>
+    </div>
+    <?php endif; ?>
+
+<!-- Stats -->
     <div class="stats-grid">
       <?php foreach([['[P]','si-blue',$stats['admin_plans']??0,'Admin Plans'],['[D]','si-gold',$stats['dev_plans']??0,'Dev Plans'],['[L]','si-green',$stats['located']??0,'Located'],['[V]','si-gray',$stats['villages']??0,'Villages']] as[$ic,$sc,$sv,$sl]): ?>
       <div class="stat-card"><div class="stat-icon <?= $sc ?>"><?= $ic ?></div><div><div class="stat-val"><?= (int)$sv ?></div><div class="stat-lbl"><?= $sl ?></div></div></div>
