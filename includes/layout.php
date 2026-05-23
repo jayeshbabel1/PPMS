@@ -5,281 +5,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <title><?= e(APP_BRAND) ?><?= !in_array($page,['home','login'])?' — '.ucfirst(str_replace('_',' ',$page)):'' ?></title>
-<style>
-<?= get_theme_css() ?>
-
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
-html{scroll-behavior:smooth;}
-body{background:var(--bg);color:var(--t2);font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.6;min-height:100vh;}
-a{color:var(--primary-d);text-decoration:none;}a:hover{text-decoration:underline;}
-
-/* Marquee */
-.mqbar{background:var(--primary);color:var(--btn-text);padding:5px 0;overflow:hidden;white-space:nowrap;font-size:.8rem;font-weight:600;}
-.mqinner{display:inline-block;animation:mqScroll linear infinite;}
-@keyframes mqScroll{0%{transform:translateX(100vw);}100%{transform:translateX(-100%);}}
-
-/* Buttons */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;border:1px solid transparent;border-radius:var(--r);font-family:Arial,Helvetica,sans-serif;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;text-decoration:none;line-height:1.3;}
-.btn-sm{font-size:.76rem;padding:5px 11px;}.btn-md{font-size:.84rem;padding:8px 16px;}.btn-lg{font-size:.9rem;padding:11px 22px;}.btn-full{width:100%;justify-content:center;}
-.btn-primary{background:var(--primary);color:var(--btn-text);border-color:var(--primary);}
-.btn-primary:hover{background:var(--primary-h);border-color:var(--primary-h);color:var(--btn-text);text-decoration:none;}
-.btn-secondary{background:var(--surface2);color:var(--t2);border-color:var(--border);}
-.btn-secondary:hover{background:var(--border);color:var(--t1);text-decoration:none;}
-.btn-danger{background:var(--red-bg);color:var(--red);border-color:#e0a0a0;}
-.btn-danger:hover{background:var(--red);color:#fff;text-decoration:none;}
-.btn-ghost{background:transparent;color:var(--t3);border-color:var(--border);}
-.btn-ghost:hover{background:var(--surface2);color:var(--t1);text-decoration:none;}
-.btn-success{background:var(--green-bg);color:var(--green);border-color:#9acc9a;}
-.btn-success:hover{background:var(--green);color:#fff;text-decoration:none;}
-.btn-gold{background:var(--gold-bg);color:var(--gold-s);border-color:#d4b090;}
-.btn-gold:hover{background:var(--gold);color:#fff;text-decoration:none;}
-
-/* Inputs */
-.input,select.input,textarea.input{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:9px 12px;color:var(--t1);font-family:Arial,Helvetica,sans-serif;font-size:.86rem;outline:none;transition:border-color .15s,box-shadow .15s;width:100%;}
-.input::placeholder{color:var(--t4);}.input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(129,166,198,.18);}
-textarea.input{resize:vertical;min-height:70px;}select.input{cursor:pointer;}
-
-/* Alerts */
-.alert{border-radius:var(--r);padding:10px 14px;font-size:.81rem;display:flex;align-items:flex-start;gap:8px;border:1px solid;margin-bottom:1rem;}
-.alert-danger{background:var(--red-bg);border-color:#e0a0a0;color:var(--red);}
-.alert-success{background:var(--green-bg);border-color:#9acc9a;color:var(--green);}
-.alert-info{background:var(--primary-bg);border-color:#a0bcd4;color:var(--primary-d);}
-.alert-warning{background:var(--gold-bg);border-color:#d4b090;color:var(--gold-s);}
-
-/* Badges */
-.badge{display:inline-block;border-radius:4px;padding:2px 8px;font-size:.65rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;}
-.badge-blue{background:var(--primary-bg);color:var(--primary-d);border:1px solid #a0bcd4;}
-.badge-gold{background:var(--gold-bg);color:var(--gold-s);border:1px solid #d4b090;}
-.badge-green{background:var(--green-bg);color:var(--green);border:1px solid #9acc9a;}
-.badge-red{background:var(--red-bg);color:var(--red);border:1px solid #e0a0a0;}
-.badge-gray{background:var(--surface2);color:var(--t3);border:1px solid var(--border);}
-.badge-dev{background:#e8f0fe;color:#4a5fca;border:1px solid #c0c8f0;}
-
-/* Cards */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh);}
-.card-header{padding:.9rem 1.2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:1rem;background:var(--surface2);}
-.card-header h3{font-size:.9rem;font-weight:700;color:var(--t1);}
-.card-body{padding:1.2rem;}
-
-/* Forms */
-.form-field{display:flex;flex-direction:column;gap:5px;margin-bottom:.85rem;}
-.form-field label{font-size:.7rem;font-weight:700;color:var(--t3);letter-spacing:.06em;text-transform:uppercase;}
-.form-field label .req{color:var(--primary);margin-left:2px;}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;}
-.fg-full{grid-column:1/-1;}
-.divider{height:1px;background:var(--border);margin:1.1rem 0;}
-
-/* Table */
-.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-table{width:100%;border-collapse:collapse;}
-thead th{padding:9px 11px;text-align:left;font-size:.68rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;border-bottom:2px solid var(--border);background:var(--surface2);white-space:nowrap;}
-tbody td{padding:9px 11px;font-size:.82rem;color:var(--t2);border-bottom:1px solid var(--surface2);vertical-align:middle;}
-tbody tr:hover td{background:var(--bg2);}
-tbody tr:last-child td{border-bottom:none;}
-
-/* Stats */
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:1.5rem;}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1rem 1.1rem;display:flex;align-items:center;gap:11px;box-shadow:var(--sh);}
-.stat-icon{width:38px;height:38px;flex-shrink:0;border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
-.si-blue{background:var(--primary-bg);}.si-gold{background:var(--gold-bg);}.si-green{background:var(--green-bg);}.si-gray{background:var(--surface2);}
-.stat-val{font-size:1.35rem;font-weight:700;color:var(--t1);line-height:1;}.stat-lbl{font-size:.65rem;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;}
-
-/* Plan cards */
-.plans-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;}
-.plan-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;transition:all .15s;display:flex;flex-direction:column;box-shadow:var(--sh);}
-.plan-card:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:var(--sh-md);}
-.plan-card.dev-card{border-color:#c0c8f0;}
-.plan-card.dev-card:hover{border-color:#4a5fca;}
-.plan-card.sponsored{border:2px solid var(--gold);box-shadow:0 4px 16px rgba(200,149,108,.25);}
-.plan-thumb{height:125px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:1.8rem;border-bottom:1px solid var(--border);position:relative;overflow:hidden;}
-.plan-thumb img{width:100%;height:100%;object-fit:cover;}
-.thumb-tag{position:absolute;bottom:6px;left:6px;background:rgba(44,58,74,.78);border-radius:3px;padding:2px 6px;font-size:.6rem;font-weight:700;text-transform:uppercase;color:#fff;}
-.thumb-sponsored{position:absolute;top:6px;right:6px;background:var(--gold);color:#fff;border-radius:100px;padding:2px 8px;font-size:.62rem;font-weight:700;}
-.plan-card-body{padding:11px 13px;flex:1;display:flex;flex-direction:column;}
-.plan-name{font-size:.88rem;font-weight:700;color:var(--t1);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.plan-aaraji{font-size:.72rem;color:var(--primary-d);margin-bottom:6px;font-weight:600;}
-.plan-village{display:inline-flex;align-items:center;gap:4px;background:var(--gold-bg);border:1px solid #d4b090;border-radius:4px;padding:2px 7px;font-size:.67rem;font-weight:600;color:var(--gold-s);margin-bottom:6px;}
-.plan-dev-badge{display:inline-flex;align-items:center;gap:4px;background:#e8f0fe;border:1px solid #c0c8f0;border-radius:4px;padding:2px 7px;font-size:.67rem;font-weight:600;color:#4a5fca;margin-bottom:6px;}
-.plan-loc{font-size:.73rem;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:auto;}
-.plan-card-footer{padding:8px 13px;border-top:1px solid var(--border);display:flex;gap:5px;flex-wrap:wrap;}
-
-/* Filter chips */
-.filter-row{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:1.1rem;}
-.chip{background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:4px 12px;font-size:.74rem;font-weight:500;color:var(--t3);cursor:pointer;transition:all .15s;text-decoration:none;display:inline-block;}
-.chip:hover{color:var(--t1);text-decoration:none;}.chip.active{background:var(--primary-bg);border-color:#a0bcd4;color:var(--primary-d);}
-
-/* Pagination */
-.pagination{display:flex;align-items:center;gap:5px;margin-top:1.5rem;flex-wrap:wrap;}
-.pag-btn{background:var(--surface);border:1px solid var(--border);color:var(--t3);border-radius:var(--r-sm);padding:5px 11px;font-size:.77rem;font-weight:500;text-decoration:none;transition:all .15s;display:inline-block;}
-.pag-btn:hover{background:var(--primary-bg);border-color:var(--primary);color:var(--primary);text-decoration:none;}
-.pag-btn.active{background:var(--primary);border-color:var(--primary);color:var(--btn-text);}
-.pag-btn.disabled{opacity:.4;pointer-events:none;}
-
-/* Upload */
-.upload-zone{border:2px dashed var(--border2);border-radius:var(--r-lg);padding:1.4rem;text-align:center;cursor:pointer;background:var(--surface2);position:relative;transition:all .15s;}
-.upload-zone:hover,.upload-zone.drag-over{border-color:var(--primary);background:var(--primary-bg);}
-.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
-.upload-zone p{font-size:.82rem;color:var(--t3);}
-.upload-zone small{font-size:.7rem;color:var(--t4);}
-.upload-preview{margin-top:8px;display:none;align-items:center;gap:8px;background:var(--primary-bg);border:1px solid #a0bcd4;border-radius:var(--r);padding:7px 11px;font-size:.79rem;color:var(--primary-d);}
-.upload-preview.show{display:flex;}
-
-/* Sidebar */
-.sidebar{width:var(--sidebar);background:var(--sidebar-bg);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:200;transition:transform .25s ease;overflow-y:auto;box-shadow:var(--sh);}
-.sidebar-brand{padding:1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;min-height:var(--hdr);}
-.brand-icon{width:34px;height:34px;flex-shrink:0;background:var(--primary);border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:var(--btn-text);font-weight:700;}
-.brand-text h2{font-size:.88rem;font-weight:700;color:var(--t1);line-height:1.25;}
-.brand-text span{font-size:.6rem;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;}
-.sidebar-nav{flex:1;padding:.7rem .5rem;}
-.nav-section{font-size:.6rem;font-weight:700;color:var(--t4);letter-spacing:.1em;text-transform:uppercase;padding:0 .6rem;margin:.7rem 0 .3rem;}
-.nav-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--r);color:var(--t3);font-size:.82rem;font-weight:500;text-decoration:none;cursor:pointer;border:none;background:none;width:100%;transition:all .15s;margin-bottom:1px;}
-.nav-item .ni{font-size:1.1rem;width:20px;flex-shrink:0;text-align:center;display:flex;align-items:center;justify-content:center;}
-.nav-item:hover{background:var(--primary-bg);color:var(--primary-d);text-decoration:none;}
-.nav-item.active{background:var(--primary-bg);color:var(--primary-d);border:1px solid #a0bcd4;}
-.sidebar-footer{padding:.7rem;border-top:1px solid var(--border);}
-.user-info{display:flex;align-items:center;gap:8px;padding:7px 9px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:7px;}
-.user-avatar{width:26px;height:26px;flex-shrink:0;background:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;color:var(--btn-text);font-weight:700;}
-.uname{font-size:.78rem;font-weight:700;color:var(--t1);}.urole{font-size:.62rem;color:var(--t3);text-transform:uppercase;letter-spacing:.04em;}
-.sidebar-plan-pill{padding:6px 9px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;gap:7px;margin-bottom:7px;}
-.spp-label{font-size:.72rem;font-weight:700;color:var(--primary-d);}.spp-exp{font-size:.62rem;color:var(--t4);}
-.sidebar-footer-text{text-align:center;font-size:.65rem;color:var(--t4);padding:5px 0;line-height:1.5;}
-
-/* App shell */
-.app-shell{display:flex;min-height:100vh;}
-.main-wrap{flex:1;margin-left:var(--sidebar);min-height:100vh;display:flex;flex-direction:column;}
-.topbar{height:var(--hdr);background:var(--topbar-bg);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 1.4rem;position:sticky;top:0;z-index:100;box-shadow:var(--sh);}
-.topbar-left{display:flex;align-items:center;gap:9px;}
-.topbar-title{font-size:.9rem;font-weight:700;color:var(--t1);}
-.topbar-right{display:flex;align-items:center;gap:7px;}
-.topbar-date{font-size:.7rem;color:var(--t3);background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:3px 10px;}
-.page-content{padding:1.4rem;flex:1;}
-.sidebar-toggle{display:none;background:var(--surface2);border:1px solid var(--border);color:var(--t2);border-radius:var(--r);padding:5px 9px;cursor:pointer;font-size:1rem;line-height:1;font-weight:700;}
-.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(44,58,74,.4);z-index:199;}
-.sidebar-overlay.show{display:block;}
-
-/* Toast */
-.toast-wrap{position:fixed;bottom:1.2rem;right:1.2rem;z-index:9999;}
-.toast{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:10px 15px;display:flex;align-items:center;gap:9px;font-size:.82rem;font-weight:600;color:var(--t1);box-shadow:var(--sh-lg);min-width:230px;}
-.toast.success{border-left:3px solid var(--green);}.toast.error{border-left:3px solid var(--red);}.toast.info{border-left:3px solid var(--primary);}
-
-/* Map */
-.map-embed{border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--border);}
-.map-embed iframe{width:100%;height:230px;border:none;display:block;}
-
-/* Locked */
-.locked-section{padding:1.1rem;display:flex;align-items:center;gap:11px;background:var(--surface2);}
-
-/* DLC table */
-.dlc-sqm{font-weight:600;color:var(--t1);font-size:.8rem;}.dlc-sqft{font-size:.67rem;color:var(--t3);}
-
-/* Search */
-.search-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:.9rem;}
-.search-input-wrap{position:relative;flex:1;min-width:190px;}
-.search-icon-pos{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--t4);pointer-events:none;font-size:.9rem;}
-.search-input-wrap .input{padding-left:32px;}
-
-/* Tabs */
-.tab-bar{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:1.1rem;}
-.tab-btn{padding:7px 18px;font-size:.82rem;font-weight:600;color:var(--t3);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;text-decoration:none;display:inline-block;}
-.tab-btn:hover{color:var(--primary-d);text-decoration:none;}
-.tab-btn.active{color:var(--primary-d);border-bottom-color:var(--primary);}
-
-/* Image zoom overlay */
-#imgZoom{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:9999;display:none;align-items:center;justify-content:center;}
-#imgZoom.show{display:flex;}
-#imgZoom img{max-width:90vw;max-height:88vh;border-radius:var(--r-lg);cursor:default;}
-.zoom-close-btn{position:absolute;top:1rem;right:1rem;background:rgba(255,255,255,.2);border:none;color:#fff;font-size:1.3rem;width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.zoom-ctrls{position:absolute;bottom:1.5rem;left:50%;transform:translateX(-50%);display:flex;gap:9px;}
-.zoom-ctrls button{background:rgba(255,255,255,.2);border:none;color:#fff;font-size:.9rem;width:36px;height:36px;border-radius:50%;cursor:pointer;font-weight:700;}
-.zoom-ctrls button:hover{background:rgba(255,255,255,.35);}
-.zoomable{cursor:zoom-in;}
-
-/* Modal */
-.modal-overlay{position:fixed;inset:0;background:rgba(44,58,74,.45);z-index:500;display:none;align-items:center;justify-content:center;padding:1rem;}
-.modal-overlay.show{display:flex;}
-.modal-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);box-shadow:var(--sh-lg);width:100%;max-width:580px;max-height:90vh;overflow-y:auto;position:relative;animation:mIn .22s ease;}
-@keyframes mIn{from{opacity:0;transform:scale(.94) translateY(12px);}to{opacity:1;transform:scale(1) translateY(0);}}
-.modal-hdr{padding:.9rem 1.2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
-.modal-hdr h3{font-size:.9rem;font-weight:700;color:var(--t1);}
-.modal-close{background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--t3);padding:2px 7px;border-radius:4px;font-weight:700;}
-.modal-close:hover{background:var(--red-bg);color:var(--red);}
-.modal-body{padding:1.2rem;}
-
-/* Two col */
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;}
-
-/* Section heading */
-.section-heading{font-size:.75rem;font-weight:700;color:var(--primary-d);text-transform:uppercase;letter-spacing:.06em;padding-bottom:.4rem;border-bottom:1px solid var(--border);margin:.9rem 0 .7rem;}
-
-/* Color swatch input */
-.color-row{display:flex;align-items:center;gap:10px;margin-bottom:.7rem;}
-.color-row label{min-width:170px;font-size:.78rem;color:var(--t2);}
-.color-row input[type=color]{width:42px;height:32px;border:1px solid var(--border);border-radius:4px;cursor:pointer;padding:2px;}
-.color-row input[type=text]{flex:1;font-family:'JetBrains Mono',monospace,sans-serif;font-size:.82rem;}
-
-/* Permission table */
-.perm-table{width:100%;border-collapse:collapse;}
-.perm-table th{padding:8px 10px;background:var(--surface2);font-size:.68rem;font-weight:700;color:var(--t3);text-transform:uppercase;border-bottom:2px solid var(--border);text-align:center;}
-.perm-table th:first-child{text-align:left;}
-.perm-table td{padding:8px 10px;border-bottom:1px solid var(--surface2);font-size:.82rem;color:var(--t2);text-align:center;vertical-align:middle;}
-.perm-table td:first-child{text-align:left;font-weight:500;color:var(--t1);}
-.perm-table tr.perm-group td{background:var(--primary-bg);font-weight:700;color:var(--primary-d);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;padding:5px 10px;}
-.perm-table input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--primary);}
-.perm-locked{color:var(--t4);font-size:.72rem;}
-
-/* Login */
+   <style><?= get_theme_css() ?>
+  /* Login */
 <?php if (in_array($page,['login','reset_password'])): ?>
 body{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1.5rem;background:linear-gradient(135deg,var(--bg) 0%,var(--sec) 100%);}
 <?php endif; ?>
-.login-wrap{width:100%;max-width:400px;animation:fadeUp .4s ease both;}
-@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
-.login-brand{text-align:center;margin-bottom:1.8rem;}
-.login-brand-icon{width:60px;height:60px;background:var(--primary);border-radius:16px;display:inline-flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:.7rem;box-shadow:0 6px 20px rgba(129,166,198,.45);color:var(--btn-text);font-weight:700;}
-.login-brand h1{font-size:1.5rem;font-weight:700;color:var(--t1);}
-.login-brand .sub{font-size:.72rem;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-top:3px;}
-.login-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:1.8rem;box-shadow:var(--sh-lg);}
-.login-card h2{font-size:1rem;font-weight:700;color:var(--t1);margin-bottom:3px;}
-.login-card .lsub{font-size:.78rem;color:var(--t3);margin-bottom:1.4rem;}
-
-/* Sponsored strip */
-.sponsored-strip{background:linear-gradient(135deg,var(--gold-bg),#fff);border:1px solid #d4b090;border-radius:var(--r-lg);padding:1rem 1.2rem;margin-bottom:1.4rem;}
-.sponsored-strip-title{display:flex;align-items:center;gap:10px;margin-bottom:.8rem;}
-.sponsored-strip-title .label{background:var(--gold);color:#fff;padding:2px 10px;border-radius:100px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;}
-.sponsored-strip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;}
-.sp-card{background:#fff;border:1px solid #d4b090;border-radius:var(--r);overflow:hidden;transition:all .15s;}
-.sp-card:hover{border-color:var(--gold);transform:translateY(-1px);box-shadow:0 4px 14px rgba(200,149,108,.2);}
-.sp-thumb{height:90px;overflow:hidden;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:1.5rem;}
-.sp-thumb img{width:100%;height:100%;object-fit:cover;}
-.sp-body{padding:8px 10px;}
-.sp-name{font-size:.82rem;font-weight:700;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.sp-price{font-size:.72rem;color:var(--gold-s);font-weight:600;margin-top:2px;}
-
-/* Responsive */
-@media(max-width:768px){
-  :root{--sidebar:265px;}
-  .sidebar{transform:translateX(-265px);}.sidebar.open{transform:translateX(0);}
-  .main-wrap{margin-left:0;}.sidebar-toggle{display:flex;align-items:center;}
-  .page-content{padding:1rem;}.plans-grid{grid-template-columns:1fr;}.form-grid{grid-template-columns:1fr;}.fg-full{grid-column:1;}.stats-grid{grid-template-columns:1fr 1fr;}.two-col{grid-template-columns:1fr;}.topbar{padding:0 .9rem;}.topbar-date{display:none;}
-  table{font-size:.76rem;}thead th{padding:7px 8px;}tbody td{padding:7px 8px;}
-  .plan-card-footer .btn{font-size:.7rem;padding:5px 7px;}
-  .color-row label{min-width:130px;font-size:.74rem;}
-}
-@media(max-width:480px){.stats-grid{grid-template-columns:1fr 1fr;}.chip{font-size:.68rem;padding:3px 9px;}.login-card{padding:1.3rem;}}
-
-/* Boxicons sizing in stat cards and buttons */
-.stat-icon i{font-size:1.3rem;color:var(--primary-d);}
-.stat-icon.si-gold i{color:var(--gold-s);}
-.stat-icon.si-green i{color:var(--green);}
-.stat-icon.si-gray i{color:var(--t3);}
-.btn i{font-size:1rem;vertical-align:middle;line-height:1;}
-.nav-item i{font-size:1rem;}
-.card-header h3 i{font-size:1rem;vertical-align:middle;margin-right:2px;}
-.upload-zone i{display:block;}
-</style>
+  </style>
+  <link rel="stylesheet" href="assets/css/style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css">
 </head>
 <body>
-
 <!-- Zoom overlay -->
 <div id="imgZoom" onclick="closeZoom(event)">
   <button class="zoom-close-btn" onclick="closeZoomBtn()">X</button>
@@ -365,8 +100,7 @@ body{display:flex;align-items:center;justify-content:center;min-height:100vh;pad
         <button type="submit" class="btn btn-primary btn-md btn-full"><i class="bx bx-envelope"></i> Send Reset Link</button>
       </form>
     </div>
-    <p style="text-align:center;margin-top:.9rem;font-size:.72rem;color:var(--t4)">Default: <code>admin</code> / <code>admin@123</code></p>
-  </div>
+      </div>
 
   <?php elseif ($page==='reset_password'): ?>
   <div class="login-card">
@@ -496,46 +230,18 @@ body{display:flex;align-items:center;justify-content:center;min-height:100vh;pad
       </div>
     </div>
     <?php endif; ?>
-
-        <!-- Sponsored Strip -->
-    <?php if (!empty($sponsoredPlans ?? [])): ?>
-    <div style="margin-bottom:1.4rem;background:linear-gradient(135deg,#fffbf0,#fff8e8);border:2px solid #e8c87a;border-radius:14px;padding:1.1rem 1.3rem">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:.9rem">
-        <span style="background:#d4a017;color:#fff;padding:3px 12px;border-radius:100px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em">
-          <i class="bx bxs-star"></i> Featured Properties
-        </span>
-        <div style="height:1px;flex:1;background:#e8c87a"></div>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px">
-        <?php foreach (($sponsoredPlans ?? []) as $sp): ?>
-        <a href="index.php?page=view&id=<?= $sp['id'] ?>" style="background:#fff;border:1px solid #e8c87a;border-radius:10px;overflow:hidden;display:block;transition:all .15s;text-decoration:none">
-          <?php if ($sp['file_type']==='image' && $sp['file_path']): ?>
-          <div style="height:80px;overflow:hidden"><img src="<?= e($sp['file_path']) ?>" alt="" style="width:100%;height:100%;object-fit:cover"></div>
-          <?php else: ?>
-          <div style="height:60px;background:#fef9ee;display:flex;align-items:center;justify-content:center;font-size:1.8rem;color:#d4a017"><i class="bx bx-buildings"></i></div>
-          <?php endif; ?>
-          <div style="padding:8px 10px">
-            <div style="font-size:.81rem;font-weight:700;color:#2c3a4a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?= e($sp['plan_name']) ?></div>
-            <?php if ($sp['village_name']): ?><div style="font-size:.68rem;color:#7a8f9e;margin-top:1px"><i class="bx bx-map-pin"></i> <?= e($sp['village_name']) ?></div><?php endif; ?>
-            <div style="font-size:.64rem;color:#d4a017;font-weight:700;margin-top:3px"><i class="bx bxs-star"></i> <?= e($sp['sponsored_label'] ?? 'Featured') ?></div>
-          </div>
-        </a>
-        <?php endforeach; ?>
-      </div>
-    </div>
-    <?php endif; ?>
-
+      
 <!-- Stats -->
     <div class="stats-grid">
-      <?php foreach([['[P]','si-blue',$stats['admin_plans']??0,'Admin Plans'],['[D]','si-gold',$stats['dev_plans']??0,'Dev Plans'],['[L]','si-green',$stats['located']??0,'Located'],['[V]','si-gray',$stats['villages']??0,'Villages']] as[$ic,$sc,$sv,$sl]): ?>
+      <?php foreach([['[P]','si-blue',$stats['admin_plans']??0,'ALL Plans'],['[D]','si-gold',$stats['dev_plans']??0,'Developer Plans'],['[L]','si-green',$stats['located']??0,'Located'],['[V]','si-gray',$stats['villages']??0,'Villages']] as[$ic,$sc,$sv,$sl]): ?>
       <div class="stat-card"><div class="stat-icon <?= $sc ?>"><?= $ic ?></div><div><div class="stat-val"><?= (int)$sv ?></div><div class="stat-lbl"><?= $sl ?></div></div></div>
       <?php endforeach; ?>
     </div>
 
     <!-- Tabs -->
     <div class="tab-bar">
-      <a class="tab-btn <?= $tab==='admin'?'active':'' ?>" href="index.php?page=home&tab=admin<?= $q?'&q='.urlencode($q):'' ?><?= $vf?'&village='.$vf:'' ?>">Admin Plans</a>
-      <a class="tab-btn <?= $tab==='developer'?'active':'' ?>" href="index.php?page=home&tab=developer<?= $q?'&q='.urlencode($q):'' ?><?= $vf?'&village='.$vf:'' ?>">Developer Plans</a>
+      <a class="tab-btn <?= $tab==='admin'?'active':'' ?>" href="index.php?page=home&tab=admin<?= $q?'&q='.urlencode($q):'' ?><?= $vf?'&village='.$vf:'' ?>">All Plans</a>
+
     </div>
 
     <!-- Search & filter -->
@@ -578,9 +284,9 @@ body{display:flex;align-items:center;justify-content:center;min-height:100vh;pad
           <?php if ($plan['village_name']): ?><div class="plan-village"><?= e($plan['village_name']) ?><?= $plan['tehsil']?' - '.e($plan['tehsil']):'' ?></div><?php endif; ?>
           <?php if ($isDev): ?>
           <div class="plan-dev-badge"><i class="bx bx-buildings"></i> <?= e($plan['dev_fullname']?:$plan['dev_username']) ?></div>
-          <?php if ($plan['contact_number']): ?><div style="font-size:.71rem;color:var(--t3)">Tel: <?= e($plan['contact_number']) ?></div><?php endif; ?>
+          <?php if ($plan['contact_number']): ?><div style="font-size:.71rem;color:var(--t3)">Contact No.: <?= e($plan['contact_number']) ?></div><?php endif; ?>
           <?php else: ?>
-          <div class="plan-loc"><?= $plan['google_location']?'Loc: '.e(substr($plan['google_location'],0,40)).(strlen($plan['google_location'])>40?'...':''):'<span style="color:var(--t4)">No location</span>' ?></div>
+          <div class="plan-loc"><?= $plan['google_location']?'Location: '.e(substr($plan['google_location'],0,40)).(strlen($plan['google_location'])>40?'...':''):'<span style="color:var(--t4)">No location</span>' ?></div>
           <?php endif; ?>
         </div>
         <div class="plan-card-footer">
@@ -666,7 +372,7 @@ body{display:flex;align-items:center;justify-content:center;min-height:100vh;pad
             </div>
             <div class="form-field dev-field" id="approvedMapField" style="<?= (!$isDeveloperForm&&!$editIsDev)?'display:none':'' ?>">
               <label>Approved Plan Map <span style="font-size:.65rem;font-weight:400;color:var(--t4);text-transform:none;letter-spacing:0">(from authority)</span></label>
-              <div class="upload-zone" style="padding:1rem"><input type="file" name="approved_map" accept="image/*,.pdf"><div style="font-size:2.2rem;margin-bottom:.4rem;color:var(--green)"><i class="bx bx-map-alt"></i></div><p style="font-size:.78rem">Upload government approved map</p><small>Max <?= MAX_FILE_MB ?>MB</small></div>
+              <div class="upload-zone"><input type="file" name="approved_map" accept="image/*,.pdf"><div style="font-size:2.2rem;margin-bottom:.4rem;color:var(--green)"><i class="bx bx-map-alt"></i></div><p style="font-size:.78rem">Upload government approved map</p><small>Max <?= MAX_FILE_MB ?>MB</small></div>
               <?php if (!empty($editPlan['approved_map_name'])): ?><p style="margin-top:5px;font-size:.72rem;color:var(--t3)">Current: <strong><?= e($editPlan['approved_map_name']) ?></strong></p><?php endif; ?>
             </div>
           </div>
@@ -725,44 +431,130 @@ body{display:flex;align-items:center;justify-content:center;min-height:100vh;pad
       </div>
     </div>
 
-    <?php /* ============================= VIEW ============================= */ ?>
-    <?php elseif ($page==='view'):
-    $isBasic=can_view_basic(); $isAdvance=can_view_advance();
-    $isDev=$plan['is_developer_plan']; $ownDev=($isDev&&$plan['created_by']==current_user()['id']); ?>
+  <!-- ═══════════════════════════════════════════
+         VIEW PLAN DETAIL  (permission-gated)
+    ═══════════════════════════════════════════ -->
+    <?php elseif ($page === 'view'):
+      $isBasic   = can_view_basic();
+      $isAdvance = can_view_advance();
+      $isDeveloperPlan = !empty($plan['is_developer_plan']);
+    ?>
 
     <?php if (!$isBasic): ?>
-    <div style="max-width:500px;margin:3rem auto;text-align:center"><div class="card"><div class="card-body" style="padding:2.5rem 1.5rem"><div style="font-size:2.5rem;margin-bottom:.8rem"><i class="bx bx-lock-alt"></i></div><h2 style="margin-bottom:.5rem">Subscription Required</h2><p style="font-size:.84rem;color:var(--t3);margin-bottom:1.2rem">You need an active subscription to view plan details.</p><a href="index.php" class="btn btn-ghost btn-md" style="margin-right:8px">Back</a><a href="index.php?page=profile" class="btn btn-primary btn-md">Request Access</a></div></div></div>
+    <!-- ── No subscription ── -->
+    <div style="max-width:520px;margin:3rem auto;text-align:center">
+      <div class="card">
+        <div class="card-body" style="padding:3rem 2rem">
+          <div style="font-size:3rem;margin-bottom:1rem">🔒</div>
+          <h2 style="font-size:1.2rem;color:var(--t1);margin-bottom:.5rem">Subscription Required</h2>
+          <p style="font-size:.85rem;color:var(--t3);margin-bottom:1.5rem;line-height:1.7">
+            You need an active subscription to view plan details.<br>
+            Please contact the administrator to activate your plan.
+          </p>
+          <a href="index.php" class="btn btn-ghost btn-md">← Back to Dashboard</a>
+        </div>
+      </div>
+    </div>
     <?php else: ?>
 
-    <div style="display:flex;gap:8px;margin-bottom:1.1rem;align-items:center;flex-wrap:wrap">
-      <a href="index.php" class="btn btn-ghost btn-sm">Back</a>
-      <?php if ($isDev): ?><span class="badge-dev badge" style="padding:4px 10px">[DEV] Developer Plan</span><?php endif; ?>
-      <?php if ($plan['is_sponsored']): ?><span style="background:var(--gold);color:#fff;border-radius:100px;padding:3px 10px;font-size:.68rem;font-weight:700"><?= e($plan['sponsored_label']) ?></span><?php endif; ?>
-      <?php if (is_admin()||$ownDev): ?><a href="index.php?page=edit&id=<?= $plan['id'] ?>" class="btn btn-secondary btn-sm"><i class="bx bx-edit-alt"></i> Edit</a><?php endif; ?>
-      <?php if ($plan['google_location']): ?><a href="<?= e($plan['google_location']) ?>" target="_blank" rel="noopener" class="btn btn-ghost btn-sm">Open in Maps</a><?php endif; ?>
-      <?php if ($plan['file_path']&&$isAdvance): ?><a href="<?= e($plan['file_path']) ?>" download class="btn btn-secondary btn-sm">Download Plan</a><?php endif; ?>
+    <!-- ── Subscription plan banner ── -->
+    <?php if (!is_admin()): ?>
+    <?php $curSub = get_active_subscription();
+      ?>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;margin-bottom:1.2rem;
+                border-radius:8px;border:1px solid <?= $isAdvance ? 'rgba(217,119,6,0.4)' : 'rgba(5,150,105,0.4)' ?>;
+                background:<?= $isAdvance ? 'rgba(217,119,6,0.08)' : 'rgba(5,150,105,0.08)' ?>">
+      <span style="font-size:1.1rem"><?= $isAdvance ? '⭐' : '✅' ?></span>
+      <div>
+        <span style="font-size:.78rem;font-weight:700;color:<?= $isAdvance ? 'var(--gold-s)' : '#34d399' ?>">
+          <?= $isAdvance ? 'Advance Plan' : 'Basic Plan' ?> Active
+        </span>
+        <span style="font-size:.72rem;color:var(--t4);margin-left:8px">
+          · Expires <?= $curSub ? date('d M Y', strtotime($curSub['end_date'])) : '—' ?>
+        </span>
+      </div>
+      <?php if (!$isAdvance): ?>
+      <span style="margin-left:auto;font-size:.72rem;color:var(--t4)">
+        Upgrade to Advance for chain docs &amp; DLC access
+      </span>
+      <?php endif; ?>
+    </div>
+    <?php endif; ?>
+
+    <!-- ── Action bar ── -->
+    <div style="display:flex;gap:10px;margin-bottom:1.5rem;align-items:center;flex-wrap:wrap">
+      <a href="index.php" class="btn btn-ghost btn-sm"><i class="bx bx-arrow-back"></i> Back</a>
       <?php if (is_admin()): ?>
-      <form method="POST" style="margin-left:auto" onsubmit="return confirm('Delete this plan permanently?')"><input type="hidden" name="action" value="delete_plan"><input type="hidden" name="plan_id" value="<?= $plan['id'] ?>"><input type="hidden" name="csrf_token" value="<?= e($csrfTok) ?>"><button type="submit" class="btn btn-danger btn-sm">Delete</button></form>
+      <a href="index.php?page=edit&id=<?= $plan['id'] ?>" class="btn btn-secondary btn-sm"><i class="bx bx-edit"></i> Edit</a>
+      <?php endif; ?>
+      <?php if ($plan['google_location'] && $isBasic): ?>
+      <a href="<?= e($plan['google_location']) ?>" target="_blank" rel="noopener" class="btn btn-ghost btn-sm"><i class="bx bx-map-pin"></i> Open in Maps</a>
+      <?php endif; ?>
+      <?php if ($plan['file_path'] && $isAdvance): ?>
+      <a href="<?= e($plan['file_path']) ?>" download="<?= e($plan['file_name']) ?>" class="btn btn-secondary btn-sm"><i class="bx bx-download"></i> Download Plan</a>
+      <?php endif; ?>
+      <?php if (is_admin()): ?>
+      <form method="POST" style="margin-left:auto" onsubmit="return confirm('Permanently delete this plan?')">
+        <input type="hidden" name="action" value="delete_plan">
+        <input type="hidden" name="plan_id" value="<?= $plan['id'] ?>">
+        <input type="hidden" name="csrf_token" value="<?= e($csrfTok) ?>">
+        <button type="submit" class="btn btn-danger btn-sm"><i class="bx bx-trash"></i> Delete</button>
+      </form>
       <?php endif; ?>
     </div>
 
-    <div class="two-col">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem" class="view-layout">
+
+      <!-- ── Left column ── -->
       <div>
-        <!-- Plan image -->
-        <?php if ($plan['file_type']==='image'&&$plan['file_path']&&$isBasic): ?>
-        <div class="card" style="margin-bottom:1.1rem;overflow:hidden">
-          <img src="<?= e($plan['file_path']) ?>" alt="Plan" class="zoomable" onclick="openZoom(this.src)" style="width:100%;display:block;max-height:320px;object-fit:contain;background:var(--surface2)">
-          <div style="padding:7px 12px;background:var(--surface2);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-            <span style="font-size:.72rem;color:var(--t3)">Click to zoom</span>
-            <?php if ($isAdvance): ?><a href="<?= e($plan['file_path']) ?>" download class="btn btn-secondary btn-sm">Download</a>
-            <?php else: ?><span style="font-size:.72rem;color:var(--t3)">Download requires Advance plan</span><?php endif; ?>
+
+        <!-- Plan image (Basic+) -->
+        <?php if ($plan['file_type'] === 'image' && $plan['file_path'] && $isBasic): ?>
+        <div class="card" style="margin-bottom:1.2rem;overflow:hidden">
+          <img src="<?= e($plan['file_path']) ?>" alt="Plan"
+               style="width:100%;display:block;max-height:360px;object-fit:cover">
+          <?php if ($isAdvance): ?>
+          <div style="padding:10px 14px;border-top:1px solid var(--line);text-align:right">
+            <a href="<?= e($plan['file_path']) ?>" download="<?= e($plan['file_name']) ?>"
+               class="btn btn-secondary btn-sm"><i class="bx bx-image-download"></i> Download Image</a>
+          </div>
+          <?php else: ?>
+          <div style="padding:8px 14px;border-top:1px solid var(--line);
+                      font-size:.72rem;color:var(--t4)">
+            🔒 Download requires Advance plan
+          </div>
+          <?php endif; ?>
+        </div>
+
+        <?php elseif ($plan['file_type'] === 'pdf' && $plan['file_path']): ?>
+        <div class="card" style="margin-bottom:1.2rem">
+          <div style="padding:2rem;text-align:center;background:var(--slate)">
+            <div style="font-size:3rem;margin-bottom:.8rem">📄</div>
+            <p style="font-size:.85rem;color:var(--t2);margin-bottom:1rem"><?= e($plan['file_name']) ?></p>
+            <?php if ($isAdvance): ?>
+            <a href="<?= e($plan['file_path']) ?>" target="_blank" class="btn btn-secondary btn-sm"><i class="bx bx-file-pdf"></i> Open PDF</a>
+            <a href="<?= e($plan['file_path']) ?>" download="<?= e($plan['file_name']) ?>"
+               class="btn btn-ghost btn-sm" style="margin-left:8px"><i class="bx bx-download"></i> Download</a>
+            <?php else: ?>
+            <div style="font-size:.78rem;color:var(--t4);padding:8px 14px;border-radius:6px;
+                        background:var(--navy);border:1px solid var(--line);display:inline-block">
+              🔒 PDF access requires Advance plan
+            </div>
+            <?php endif; ?>
           </div>
         </div>
-        <?php elseif ($plan['file_path']): ?>
-        <div class="card" style="margin-bottom:1.1rem"><div style="padding:2rem;text-align:center;background:var(--surface2)"><div style="font-size:2.5rem;margin-bottom:.7rem">[PDF]</div><p style="font-size:.83rem;color:var(--t2);margin-bottom:1rem"><?= e($plan['file_name']) ?></p><?php if ($isAdvance): ?><a href="<?= e($plan['file_path']) ?>" target="_blank" class="btn btn-secondary btn-sm">Open PDF</a><a href="<?= e($plan['file_path']) ?>" download class="btn btn-ghost btn-sm" style="margin-left:6px">Download</a><?php else: ?><div class="locked-section" style="justify-content:center"><strong>Advance Plan Required</strong></div><?php endif; ?></div></div>
+
+        <?php elseif (!$plan['file_path']): ?>
+        <div class="card" style="margin-bottom:1.2rem">
+          <div style="padding:3rem;text-align:center;background:var(--slate)">
+            <div style="font-size:3rem;margin-bottom:.6rem"><i class="bx bx-map"></i></div>
+            <p style="font-size:.82rem;color:var(--t4)">No file uploaded</p>
+          </div>
+        </div>
         <?php endif; ?>
-        <!-- Approved map (dev plans) -->
-        <?php if ($isDev&&$plan['approved_map_path']): ?>
+        
+         <!-- Approved map (dev plans) -->
+        <?php if ($isDeveloperPlan&&$plan['approved_map_path']): ?>
         <div class="card" style="margin-bottom:1.1rem;overflow:hidden">
           <div style="background:var(--green-bg);border-bottom:1px solid var(--border);padding:6px 12px;font-size:.72rem;font-weight:700;color:var(--green)">APPROVED PLAN MAP</div>
           <?php if ($plan['approved_map_type']==='image'): ?>
@@ -773,29 +565,234 @@ body{display:flex;align-items:center;justify-content:center;min-height:100vh;pad
           <div style="padding:7px 12px;background:var(--green-bg);border-top:1px solid var(--border);text-align:right"><a href="<?= e($plan['approved_map_path']) ?>" download class="btn btn-success btn-sm">Download Approved Map</a></div>
         </div>
         <?php endif; ?>
-        <!-- Map -->
-        <?php if ($plan['google_location']): $emb=embedUrl($plan['google_location']); ?>
-        <div class="map-embed"><?php if ($emb): ?><iframe src="<?= e($emb) ?>" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe><?php else: ?><div style="height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;background:var(--surface2)"><div>[MAP]</div><a href="<?= e($plan['google_location']) ?>" target="_blank">Open in Google Maps</a></div><?php endif; ?></div>
+       
+     
+        
+        
+        
+        <!-- Map (Basic+) -->
+        <?php if ($plan['google_location'] && $isBasic): ?>
+        <?php $emb = embedUrl($plan['google_location']); ?>
+        <div class="map-embed">
+          <?php if ($emb): ?>
+          <iframe src="<?= e($emb) ?>" allowfullscreen loading="lazy"
+                  referrerpolicy="no-referrer-when-downgrade"></iframe>
+          <?php else: ?>
+          <div style="height:180px;display:flex;flex-direction:column;align-items:center;
+                      justify-content:center;gap:8px;background:var(--slate);border-radius:var(--radius)">
+            <span style="font-size:2rem">📍</span>
+            <a href="<?= e($plan['google_location']) ?>" target="_blank" rel="noopener"
+               style="font-size:.8rem;color:var(--blue-s)"><i class="bx bx-map-pin"></i> Open in Google Maps</a>
+          </div>
+          <?php endif; ?>
+        </div>
         <?php endif; ?>
+        
+       
+        
       </div>
+
+      <!-- ── Right column ── -->
       <div>
-        <div class="card" style="margin-bottom:1.1rem">
-          <div class="card-header"><h3><?= e($plan['plan_name']) ?></h3><span class="badge badge-blue"># <?= e(substr($plan['aaraji_number'],0,40)) ?></span></div>
+        <!-- Plan info (always visible to Basic+) -->
+        <div class="card" style="margin-bottom:1.2rem">
+          <div class="card-header">
+            <h3><i class="bx bx-info-circle"></i> Plan Information</h3>
+                  </div>
           <div class="card-body">
+            <div style="margin-bottom:1.2rem">
+              <div style="font-size:1.15rem;font-weight:700;color:var(--t1);margin-bottom:3px">
+                <?= e($plan['plan_name']) ?>
+              </div>
+            </div>
             <table style="width:100%;border-collapse:collapse">
-              <?php $rows=[['Aaraji No.',$plan['aaraji_number']],['Village',$plan['village_name']??'--'],['Tehsil',$plan['tehsil']??'--'],['District',$plan['district']??'--']];
-              if ($isDev) $rows=array_merge($rows,[['Developer',$plan['dev_fullname']?:$plan['created_by_name']],['Contact',$plan['contact_number']??'--']]);
-              if (is_admin()) $rows=array_merge($rows,[['File',$plan['file_name']??'--'],['Added',date('d M Y',strtotime($plan['created_at']))]]);
-              foreach($rows as[$l,$v]): ?>
-              <tr><td style="padding:5px 0;border-bottom:1px solid var(--surface2);font-size:.67rem;font-weight:700;color:var(--t3);text-transform:uppercase;width:38%"><?= e($l) ?></td><td style="padding:5px 0;border-bottom:1px solid var(--surface2);font-size:.81rem;color:var(--t1);text-align:right;word-break:break-word"><?= e($v) ?></td></tr>
+              <?php $rows = [
+                ['Aaraji Number',   $plan['aaraji_number']],
+                ['Revenue Village', $plan['village_name'] ?: '—'],
+                ['Tehsil',          $plan['tehsil'] ?: '—'],
+                ['District',        $plan['district'] ?: '—'],
+              ];
+              if (is_admin()) $rows = array_merge($rows, [
+                ['File Type',       $plan['file_type'] ? strtoupper($plan['file_type']) : '—'],
+                ['Registered By',   $plan['created_by_name'] ?: '—'],
+                ['Registered On',   date('d M Y', strtotime($plan['created_at']))],
+              ]);
+              foreach ($rows as [$lbl,$val]): ?>
+              <tr>
+                <td style="padding:7px 0;border-bottom:1px solid var(--line);
+                           font-size:.67rem;font-weight:700;color:var(--t4);
+                           text-transform:uppercase;letter-spacing:.08em;width:38%"><?= e($lbl) ?></td>
+                <td style="padding:7px 0;border-bottom:1px solid var(--line);
+                           font-size:.82rem;color:var(--t1);
+                           font-family:'JetBrains Mono',monospace;text-align:right"><?= e($val) ?></td>
+              </tr>
               <?php endforeach; ?>
             </table>
-            <?php if ($plan['notes']): ?><div style="margin-top:.9rem;font-size:.82rem;color:var(--t2);line-height:1.7"><?= nl2br(e($plan['notes'])) ?></div><?php endif; ?>
+            <?php if ($plan['notes'] && is_admin()): ?>
+            <div style="margin-top:1rem">
+              <div style="font-size:.67rem;font-weight:700;color:var(--t4);
+                          text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px">Notes</div>
+              <p style="font-size:.83rem;color:var(--t2);line-height:1.7"><?= nl2br(e($plan['notes'])) ?></p>
+            </div>
+            <?php endif; ?>
+          </div>
+        </div>
+        <!-- DLC Rates card -->
+        <?php
+        // Developer plans: show DLC to ALL subscribed users (basic+)
+        // Admin/Aaraji plans: show DLC to Advance users only
+        
+        $canSeeDlc = $isDeveloperPlan ? $isBasic : $isAdvance;
+        ?>
+
+        <?php if (!empty($planDlc) && $canSeeDlc): ?>
+        <div class="card" style="margin-bottom:1.2rem">
+          <div class="card-header">
+            <div style="display:flex;align-items:center;gap:8px">
+              <i class="bx bx-bar-chart-alt-2" style="font-size:1.1rem;color:var(--gold-s)"></i>
+              <h3>DLC Rates</h3>
+              <?php if ($isDeveloperPlan): ?>
+              <span style="font-size:.65rem;background:#e8f0fe;color:#4a5fca;border:1px solid #c0c8f0;
+                           border-radius:4px;padding:1px 7px;font-weight:700">Govt. Rate</span>
+              <?php endif; ?>
+            </div>
+            <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
+              <span class="badge badge-gold">FY <?= e($planDlc['financial_year']) ?></span>
+              <span style="font-size:.68rem;color:var(--t3)">
+                <i class="bx bx-calendar"></i>
+                Eff. <?= date('d M Y', strtotime($planDlc['effective_from'])) ?>
+              </span>
+            </div>
+          </div>
+          <div class="card-body" style="padding:0">
+            <?php if ($plan['village_name']): ?>
+            <div style="padding:10px 14px 0;font-size:.75rem;color:var(--t3)">
+              <i class="bx bx-building-house"></i>
+              Government DLC rates for
+              <strong style="color:var(--t1)"><?= e($plan['village_name']) ?></strong>
+              <?php if (!empty($plan['tehsil'])): ?>
+              — <?= e($plan['tehsil']) ?>
+              <?php endif; ?>
+            </div>
+            <?php endif; ?>
+
+            <table style="width:100%;border-collapse:collapse;margin-top:8px">
+              <thead>
+                <tr style="background:var(--surface2)">
+                  <th style="padding:7px 14px;font-size:.65rem;font-weight:700;color:var(--t3);
+                             text-align:left;text-transform:uppercase;letter-spacing:.06em;
+                             border-bottom:1px solid var(--line)">Road Width</th>
+                  <th style="padding:7px 14px;font-size:.65rem;font-weight:700;color:var(--t3);
+                             text-align:right;text-transform:uppercase;letter-spacing:.06em;
+                             border-bottom:1px solid var(--line)">Rs / sq.m</th>
+                  <th style="padding:7px 14px;font-size:.65rem;font-weight:700;color:var(--t3);
+                             text-align:right;text-transform:uppercase;letter-spacing:.06em;
+                             border-bottom:1px solid var(--line)">Rs / sq.ft</th>
+                </tr>
+              </thead>
+              <tbody>
+              <?php
+              $dlcRows = [
+                ['30 ft Road',   $planDlc['road_30ft']],
+                ['40 ft Road',   $planDlc['road_40ft']],
+                ['60 ft Road',   $planDlc['road_60ft']],
+                ['80 ft Road',   $planDlc['road_80ft']],
+                ['100 ft Road',  $planDlc['road_100ft']],
+                ['Near Highway', $planDlc['near_highway']],
+              ];
+              $dlcHasAny = false;
+              foreach ($dlcRows as [$lbl, $val]):
+                if ($val === null) continue;
+                $dlcHasAny = true;
+                $sqft = round($val / 10.76, 2);
+              ?>
+              <tr style="border-bottom:1px solid var(--surface2)">
+                <td style="padding:9px 14px;font-size:.8rem;font-weight:500;color:var(--t2)">
+                  <i class="bx bx-road" style="font-size:.85rem;color:var(--t3)"></i>
+                  <?= e($lbl) ?>
+                </td>
+                <td style="padding:9px 14px;font-size:.84rem;font-weight:700;
+                           color:var(--gold-s);text-align:right;font-family:'JetBrains Mono',monospace">
+                  Rs <?= number_format((float)$val, 2) ?>
+                </td>
+                <td style="padding:9px 14px;font-size:.78rem;font-weight:600;
+                           color:var(--t3);text-align:right;font-family:'JetBrains Mono',monospace">
+                  Rs <?= number_format($sqft, 2) ?>
+                </td>
+              </tr>
+              <?php endforeach; ?>
+              <?php if (!$dlcHasAny): ?>
+              <tr>
+                <td colspan="3" style="padding:14px;text-align:center;font-size:.82rem;color:var(--t4)">
+                  No DLC rates entered for this village yet.
+                </td>
+              </tr>
+              <?php endif; ?>
+              </tbody>
+            </table>
+
+            <div style="padding:8px 14px 10px;font-size:.68rem;color:var(--t4);
+                        border-top:1px solid var(--surface2);display:flex;
+                        align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
+              <span><i class="bx bx-info-circle"></i> Sq.ft rate = Sq.m rate ÷ 10.76</span>
+              <?php if ($isDeveloperPlan): ?>
+              <span style="background:var(--surface2);border:1px solid var(--line);
+                           border-radius:4px;padding:2px 8px;font-size:.65rem">
+                <i class="bx bx-buildings"></i> Developer Plan
+              </span>
+              <?php endif; ?>
+            </div>
           </div>
         </div>
 
-        <!-- Pricing (dev plans) -->
-        <?php if ($isDev): $hasPricing=array_filter(['price_30ft','price_40ft','price_60ft','price_80ft','price_100ft','price_highway'],fn($f)=>$plan[$f]!==null); ?>
+        <?php elseif (!empty($plan['village_name']) && empty($planDlc) && $canSeeDlc): ?>
+        <!-- Village has no DLC data yet -->
+        <div class="card" style="margin-bottom:1.2rem">
+          <div class="card-header">
+            <h3><i class="bx bx-bar-chart-alt-2"></i> DLC Rates</h3>
+          </div>
+          <div style="padding:1.3rem 1.4rem;display:flex;align-items:center;gap:12px">
+            <i class="bx bx-data" style="font-size:1.8rem;color:var(--t4)"></i>
+            <div>
+              <div style="font-size:.83rem;font-weight:600;color:var(--t2)">
+                No DLC rates available for
+                <strong><?= e($plan['village_name']) ?></strong>
+              </div>
+              <div style="font-size:.72rem;color:var(--t4);margin-top:2px">
+                <?php if (is_admin()): ?>
+                <a href="index.php?page=dlc">Add DLC rates for this village →</a>
+                <?php else: ?>
+                DLC rates not yet entered by admin for this village.
+                <?php endif; ?>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <?php elseif (!$canSeeDlc && !$isDeveloperPlan): ?>
+        <!-- Locked for basic users on admin plans -->
+        <div class="card" style="margin-bottom:1.2rem">
+          <div class="card-header">
+            <h3><i class="bx bx-bar-chart-alt-2"></i> DLC Rates</h3>
+          </div>
+          <div style="padding:1.3rem 1.4rem;display:flex;align-items:center;gap:12px;
+                      background:var(--surface2)">
+            <i class="bx bx-lock-alt" style="font-size:1.6rem;color:var(--t3)"></i>
+            <div>
+              <div style="font-size:.83rem;font-weight:600;color:var(--t2)">
+                Advance Plan Required
+              </div>
+              <div style="font-size:.72rem;color:var(--t4);margin-top:2px">
+                Upgrade to Advance plan to view DLC rates for this village.
+              </div>
+            </div>
+          </div>
+        </div>
+        <?php endif; ?>
+        
+       
+          <!-- Pricing (dev plans) -->
+        <?php if ($isDeveloperPlan): $hasPricing=array_filter(['price_30ft','price_40ft','price_60ft','price_80ft','price_100ft','price_highway'],fn($f)=>$plan[$f]!==null); ?>
         <?php if ($hasPricing): ?>
         <div class="card" style="margin-bottom:1.1rem">
           <div class="card-header"><h3><i class="bx bx-purchase-tag"></i> Pricing (per <?= e($plan['price_unit']) ?>)</h3></div>
@@ -812,48 +809,87 @@ body{display:flex;align-items:center;justify-content:center;min-height:100vh;pad
         <?php if ($plan['brokerage_rate']): ?>
         <div class="card" style="margin-bottom:1.1rem"><div class="card-header"><h3><i class="bx bx-transfer"></i> Brokerage</h3></div><div class="card-body"><div style="font-size:1.2rem;font-weight:700;color:var(--gold-s);margin-bottom:.4rem"><?= number_format((float)$plan['brokerage_rate'],2) ?>%</div><?php if ($plan['brokerage_notes']): ?><p style="font-size:.81rem;color:var(--t2)"><?= e($plan['brokerage_notes']) ?></p><?php endif; ?></div></div>
         <?php endif; ?>
-        <?php else: ?>
-
-        <!-- DLC (admin plans, advance only) -->
-        <?php if ($isAdvance&&$planDlc): ?>
-        <div class="card" style="margin-bottom:1.1rem">
-          <div class="card-header"><h3><i class="bx bx-bar-chart-alt-2"></i> DLC Rates</h3><div style="display:flex;gap:7px;align-items:center"><span class="badge badge-gold">FY <?= e($planDlc['financial_year']) ?></span><span style="font-size:.68rem;color:var(--t3)">Eff. <?= date('d M Y',strtotime($planDlc['effective_from'])) ?></span></div></div>
-          <div class="card-body">
-            <table style="width:100%;border-collapse:collapse">
-              <tr><th style="padding:5px 0;font-size:.67rem;font-weight:700;color:var(--t3);text-transform:uppercase;border-bottom:1px solid var(--border);text-align:left">Road</th><th style="padding:5px 4px;font-size:.67rem;color:var(--t3);border-bottom:1px solid var(--border);text-align:right">Rs/sq.m</th><th style="padding:5px 0 5px 4px;font-size:.67rem;color:var(--t3);border-bottom:1px solid var(--border);text-align:right">Rs/sq.ft</th></tr>
-              <?php foreach([['30 ft','road_30ft'],['40 ft','road_40ft'],['60 ft','road_60ft'],['80 ft','road_80ft'],['100 ft','road_100ft'],['Highway','near_highway']] as[$lbl,$fld]):
-              if ($planDlc[$fld]===null) continue; ?>
-              <tr><td style="padding:5px 0;border-bottom:1px solid var(--surface2);font-size:.79rem"><?= $lbl ?></td><td style="padding:5px 4px;border-bottom:1px solid var(--surface2);text-align:right;font-weight:600;font-size:.79rem"><?= fmtSqm((float)$planDlc[$fld]) ?></td><td style="padding:5px 0 5px 4px;border-bottom:1px solid var(--surface2);text-align:right;font-size:.72rem;color:var(--t3)"><?= fmtSqft((float)$planDlc[$fld]) ?></td></tr>
-              <?php endforeach; ?>
-            </table>
-          </div>
-        </div>
-        <?php elseif (!$isAdvance): ?>
-        <div class="card" style="margin-bottom:1.1rem"><div class="card-header"><h3><i class="bx bx-bar-chart-alt-2"></i> DLC Rates</h3></div><div class="locked-section"><i class="bx bx-lock-alt"></i> <strong>Advance Plan Required</strong></div></div>
-        <?php endif; ?>
-
-        <!-- Chain docs -->
+        	<?php endif; ?>
+        
+        
+        <!-- Chain Documents (Advance+ only) -->
         <?php if ($isAdvance): ?>
+        <?php if (!empty($chainDocs)): ?>
         <div class="card">
-          <div class="card-header"><h3><i class="bx bx-link"></i> Chain Documents</h3><?php if (!empty($chainDocs)): ?><span class="badge badge-blue"><?= count($chainDocs) ?></span><?php endif; ?></div>
-          <?php if (empty($chainDocs)): ?><div style="padding:1.2rem;text-align:center;color:var(--t3);font-size:.82rem">No chain documents.<?php if (is_admin()): ?> <a href="index.php?page=edit&id=<?= $plan['id'] ?>">Add</a><?php endif; ?></div>
-          <?php else: ?><div class="card-body" style="display:flex;flex-direction:column;gap:8px">
-            <?php foreach ($chainDocs as $idx=>$doc): ?>
-            <div style="display:flex;align-items:center;gap:9px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:9px 11px">
-              <div style="width:38px;height:38px;flex-shrink:0;border-radius:var(--r);background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1rem;overflow:hidden"><?php if ($doc['file_type']==='image'): ?><img src="<?= e($doc['file_path']) ?>" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:4px"><?php else: ?>[PDF]<?php endif; ?></div>
-              <div style="flex:1;min-width:0"><div style="font-size:.79rem;font-weight:600;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?= e($doc['file_name']) ?></div><div style="font-size:.67rem;color:var(--t3)"><?= strtoupper($doc['file_type']) ?><?= $doc['file_size']?' - '.round($doc['file_size']/1024).' KB':'' ?></div></div>
-              <a href="<?= e($doc['file_path']) ?>" target="_blank" class="btn btn-ghost btn-sm">Open</a>
-              <a href="<?= e($doc['file_path']) ?>" download class="btn btn-secondary btn-sm">Save</a>
-              <?php if (is_admin()): ?><form method="POST" onsubmit="return confirm('Delete?')"><input type="hidden" name="action" value="delete_chain_doc"><input type="hidden" name="doc_id" value="<?= $doc['id'] ?>"><input type="hidden" name="plan_id" value="<?= $plan['id'] ?>"><input type="hidden" name="csrf_token" value="<?= e($csrfTok) ?>"><button type="submit" class="btn btn-danger btn-sm"><i class="bx bx-trash"></i></button></form><?php endif; ?>
+          <div class="card-header">
+            <h3>🔗 Chain Documents</h3>
+            <span class="badge badge-blue"><?= count($chainDocs) ?> file<?= count($chainDocs)!==1?'s':'' ?></span>
+          </div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+            <?php foreach ($chainDocs as $idx => $doc): ?>
+            <div style="display:flex;align-items:center;gap:12px;background:var(--slate);
+                        border:1px solid var(--line);border-radius:10px;padding:11px 14px">
+              <div style="width:42px;height:42px;flex-shrink:0;border-radius:7px;
+                          background:var(--navy2);border:1px solid var(--line2);
+                          display:flex;align-items:center;justify-content:center;
+                          font-size:1.2rem;overflow:hidden">
+                <?php if ($doc['file_type']==='image'): ?>
+                <img src="<?= e($doc['file_path']) ?>" alt=""
+                     style="width:100%;height:100%;object-fit:cover;border-radius:6px">
+                <?php else: ?>📄<?php endif; ?>
+              </div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:.82rem;font-weight:600;color:var(--t1);
+                            white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                  <?= e($doc['file_name']) ?>
+                </div>
+                <div style="font-size:.68rem;color:var(--t4);font-family:'JetBrains Mono',monospace;margin-top:2px">
+                  <?= strtoupper($doc['file_type']) ?>
+                  <?= $doc['file_size'] ? ' · '.round($doc['file_size']/1024).' KB' : '' ?>
+                  · Doc #<?= $idx+1 ?>
+                </div>
+              </div>
+              <div style="display:flex;gap:6px;flex-shrink:0">
+                <a href="<?= e($doc['file_path']) ?>" target="_blank" class="btn btn-ghost btn-sm"><i class="bx bx-link-external"></i></a>
+                <a href="<?= e($doc['file_path']) ?>" download="<?= e($doc['file_name']) ?>"
+                   class="btn btn-secondary btn-sm"><i class="bx bx-download"></i></a>
+                <?php if (is_admin()): ?>
+                <form method="POST" onsubmit="return confirm('Delete this chain document?')">
+                  <input type="hidden" name="action"     value="delete_chain_doc">
+                  <input type="hidden" name="doc_id"     value="<?= $doc['id'] ?>">
+                  <input type="hidden" name="plan_id"    value="<?= $plan['id'] ?>">
+                  <input type="hidden" name="csrf_token" value="<?= e($csrfTok) ?>">
+                  <button type="submit" class="btn btn-danger btn-sm"><i class="bx bx-trash"></i></button>
+                </form>
+                <?php endif; ?>
+              </div>
             </div>
             <?php endforeach; ?>
-          </div><?php endif; ?>
+          </div>
         </div>
-        <?php else: ?><div class="card"><div class="card-header"><h3><i class="bx bx-link"></i> Chain Documents</h3></div><div class="locked-section"><i class="bx bx-lock-alt"></i> <strong>Advance Plan Required</strong></div></div><?php endif; ?>
-        <?php endif; /* end is_dev check */ ?>
+        <?php else: ?>
+        <div class="card">
+          <div class="card-header"><h3>🔗 Chain Documents</h3></div>
+          <div style="padding:1.5rem;text-align:center;color:var(--t4);font-size:.82rem">
+            No chain documents attached.
+            <?php if(is_admin()): ?>
+            <a href="index.php?page=edit&id=<?= $plan['id'] ?>" style="color:var(--blue-s);margin-left:6px">Add →</a>
+            <?php endif; ?>
+          </div>
+        </div>
+        <?php endif; ?>
+        <?php else: ?>
+        <!-- Locked chain docs for basic users -->
+        <div class="card">
+          <div class="card-header"><h3>🔗 Chain Documents</h3></div>
+          <div style="padding:1.5rem;display:flex;align-items:center;gap:12px">
+            <span style="font-size:1.4rem">🔒</span>
+            <div>
+              <div style="font-size:.83rem;font-weight:600;color:var(--t2)">Advance Plan Required</div>
+              <div style="font-size:.72rem;color:var(--t4)">Upgrade to view &amp; download chain documents</div>
+            </div>
+          </div>
+        </div>
+        <?php endif; ?>
       </div>
     </div>
-    <?php endif; /* isBasic */ ?>
+    <?php endif; /* end isBasic check */ ?>
+
 
     <?php /* ============================= VILLAGES ============================= */ ?>
     <?php elseif ($page==='villages'): ?>
@@ -1126,7 +1162,7 @@ body{display:flex;align-items:center;justify-content:center;min-height:100vh;pad
                 <tr class="perm-group"><td colspan="5"><?= strtoupper(e($p['group'])) ?></td></tr>
                 <?php endif; ?>
                 <tr>
-                  <td><?= e($p['label']) ?></td>
+                  <td><?= e($p['Label']) ?></td>
                   <td><span class="perm-locked">YES (locked)</span></td>
                   <td><input type="checkbox" name="perm_developer[<?= e($p['feature']) ?>]" value="1" <?= $p['developer']?'checked':'' ?>></td>
                   <td><input type="checkbox" name="perm_adv[<?= e($p['feature']) ?>]" value="1" <?= $p['adv_viewer']?'checked':'' ?>></td>
@@ -1244,12 +1280,6 @@ body{display:flex;align-items:center;justify-content:center;min-height:100vh;pad
       <span style="font-size:.74rem;color:var(--t3);margin-left:8px">Sends test email to the admin email address above</span>
     </div>
 
-    <script>
-    function syncColor(input){var v=input.value;if(/^#[0-9a-fA-F]{6}$/.test(v)){var pair=input.previousElementSibling;if(pair&&pair.type==='color')pair.value=v;}}
-    function resetTheme(){var defaults={'theme_primary':'#81A6C6','theme_bg':'#F3E3D0','theme_surface':'#FFFFFF','theme_border':'#D2C4B4','theme_btn_text':'#FFFFFF','theme_heading':'#2C3A4A','theme_text':'#4A5E70','theme_sidebar_bg':'#FFFFFF','theme_topbar_bg':'#FFFFFF'};
-    for(var k in defaults){var t=document.getElementById(k+'_text');if(t){t.value=defaults[k];var c=t.previousElementSibling;if(c&&c.type==='color')c.value=defaults[k];}}}
-    </script>
-
     <?php /* ============================= PROFILE ============================= */ ?>
     <?php elseif ($page==='profile'): ?>
     <?php $pwErrMap=['wrongpw'=>'Current password incorrect.','short'=>'New password must be 6+ characters.','mismatch'=>'Passwords do not match.'];
@@ -1317,100 +1347,6 @@ body{display:flex;align-items:center;justify-content:center;min-height:100vh;pad
   </div>
 </div>
 <?php endif; /* end app/login */ ?>
-
-<script>
-// Sidebar
-function toggleSidebar(){var s=document.getElementById('sidebar');var o=document.getElementById('sidebarOverlay');if(s)s.classList.toggle('open');if(o)o.classList.toggle('show');}
-function closeSidebar(){document.getElementById('sidebar')?.classList.remove('open');document.getElementById('sidebarOverlay')?.classList.remove('show');}
-
-// Forgot password toggle
-function showForgot(){var f=document.getElementById('forgotForm');if(f)f.style.display=f.style.display==='none'?'block':'none';}
-
-// File preview
-var fileInput=document.getElementById('fileInput');
-var uploadPreview=document.getElementById('uploadPreview');
-var prevName=document.getElementById('prevName');
-var prevIcon=document.getElementById('prevIcon');
-var filePreviewBox=document.getElementById('filePreviewBox');
-var filePreviewImg=document.getElementById('filePreviewImg');
-var filePreviewPdf=document.getElementById('filePreviewPdf');
-var filePreviewPdfName=document.getElementById('filePreviewPdfName');
-
-function showFilePreview(file){
-  if(!file||!filePreviewBox) return;
-  if(prevName) prevName.textContent=file.name;
-  if(prevIcon) prevIcon.textContent=file.type==='application/pdf'?'[PDF]':'[IMG]';
-  if(uploadPreview) uploadPreview.classList.add('show');
-  filePreviewBox.style.display='block';
-  if(file.type.startsWith('image/')){
-    if(filePreviewImg) filePreviewImg.style.display='block';
-    if(filePreviewPdf) filePreviewPdf.style.display='none';
-    var rd=new FileReader();rd.onload=function(e){if(filePreviewImg)filePreviewImg.src=e.target.result;};rd.readAsDataURL(file);
-  } else {
-    if(filePreviewImg) filePreviewImg.style.display='none';
-    if(filePreviewPdf) filePreviewPdf.style.display='block';
-    if(filePreviewPdfName) filePreviewPdfName.textContent=file.name;
-  }
-}
-function clearUpload(){if(fileInput)fileInput.value='';if(uploadPreview)uploadPreview.classList.remove('show');if(filePreviewBox)filePreviewBox.style.display='none';}
-if(fileInput) fileInput.addEventListener('change',function(){if(this.files[0])showFilePreview(this.files[0]);});
-var uploadZone=document.getElementById('uploadZone');
-if(uploadZone){
-  uploadZone.addEventListener('dragover',function(e){e.preventDefault();this.classList.add('drag-over');});
-  uploadZone.addEventListener('dragleave',function(){this.classList.remove('drag-over');});
-  uploadZone.addEventListener('drop',function(e){e.preventDefault();this.classList.remove('drag-over');var f=e.dataTransfer.files[0];if(f&&fileInput){try{var dt=new DataTransfer();dt.items.add(f);fileInput.files=dt.files;}catch(err){}showFilePreview(f);}});
-}
-
-// Chain docs
-var chainInput=document.getElementById('chainInput');var chainList=document.getElementById('chainPreviewList');var chainZone=document.getElementById('chainZone');
-function fmtB(b){return b<1024?b+' B':b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFixed(1)+' MB';}
-function renderChain(files){if(!chainList)return;chainList.innerHTML='';chainList.style.display=files.length?'flex':'none';for(var i=0;i<files.length;i++){(function(f,idx){var row=document.createElement('div');row.style.cssText='display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:7px 11px';var icon=document.createElement('div');icon.style.cssText='width:32px;height:32px;flex-shrink:0;border-radius:4px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.85rem;overflow:hidden';if(f.type.startsWith('image/')){var img=document.createElement('img');img.style.cssText='width:100%;height:100%;object-fit:cover';var rd=new FileReader();rd.onload=function(e){img.src=e.target.result;};rd.readAsDataURL(f);icon.appendChild(img);}else{icon.textContent='[PDF]';}var info=document.createElement('div');info.style.flex='1';info.innerHTML='<div style="font-size:.78rem;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+f.name+'</div><div style="font-size:.67rem;color:var(--t3)">'+fmtB(f.size)+' #'+(idx+1)+'</div>';row.appendChild(icon);row.appendChild(info);chainList.appendChild(row);})(files[i],i);}}
-if(chainInput) chainInput.addEventListener('change',function(){renderChain(this.files);});
-if(chainZone){chainZone.addEventListener('dragover',function(e){e.preventDefault();this.classList.add('drag-over');});chainZone.addEventListener('dragleave',function(){this.classList.remove('drag-over');});chainZone.addEventListener('drop',function(e){e.preventDefault();this.classList.remove('drag-over');if(chainInput){try{var dt=new DataTransfer();for(var i=0;i<e.dataTransfer.files.length;i++)dt.items.add(e.dataTransfer.files[i]);chainInput.files=dt.files;}catch(err){}renderChain(chainInput.files);}});}
-
-// Location preview
-function previewLoc(){var v=document.getElementById('locInput');var d=document.getElementById('locPreview');if(d&&v)d.style.display=v.value.trim()?'':'none';}
-var locPrev=document.getElementById('locPreview');if(locPrev){var li=document.getElementById('locInput');if(li&&li.value.trim())locPrev.style.display='';}
-
-// Developer fields toggle (admin only)
-function toggleDevFields(val){var show=val==='1';['contactField','approvedMapField','pricingSection'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.display=show?'':'none';});}
-
-// Image zoom
-var zScale=1;
-function openZoom(src){var ov=document.getElementById('imgZoom');var img=document.getElementById('zoomImg');if(!ov||!img)return;img.src=src;zScale=1;img.style.transform='scale(1)';ov.style.display='flex';document.body.style.overflow='hidden';}
-function closeZoom(e){if(e.target===document.getElementById('imgZoom'))closeZoomBtn();}
-function closeZoomBtn(){var ov=document.getElementById('imgZoom');if(ov)ov.style.display='none';document.body.style.overflow='';}
-function zoomIn(){zScale=Math.min(zScale+0.3,4);var img=document.getElementById('zoomImg');if(img)img.style.transform='scale('+zScale+')';}
-function zoomOut(){zScale=Math.max(zScale-0.3,0.5);var img=document.getElementById('zoomImg');if(img)img.style.transform='scale('+zScale+')';}
-function zoomReset(){zScale=1;var img=document.getElementById('zoomImg');if(img)img.style.transform='scale(1)';}
-document.addEventListener('keydown',function(e){if(e.key==='Escape')closeZoomBtn();});
-
-// DLC Modal
-function openDlcModal(){
-  document.getElementById('dlcMTitle').textContent='Add DLC Rate';
-  document.getElementById('dlcId').value='0';
-  document.getElementById('dlcV').value='';
-  document.getElementById('dlcFY').value='<?= e(currentFY()) ?>';
-  document.getElementById('dlcEf').value='';
-  ['road_30ft','road_40ft','road_60ft','road_80ft','road_100ft','near_highway'].forEach(function(f){var el=document.getElementById('dlc_'+f);if(el)el.value='';});
-  document.getElementById('dlcNotes').value='';
-  document.getElementById('dlcSubmitBtn').textContent='Save DLC Rate';
-  document.getElementById('dlcModal').classList.add('show');
-}
-function openDlcEdit(d){
-  document.getElementById('dlcMTitle').textContent='Edit DLC Rate';
-  document.getElementById('dlcId').value=d.id;
-  document.getElementById('dlcV').value=d.village_id;
-  document.getElementById('dlcFY').value=d.financial_year;
-  document.getElementById('dlcEf').value=d.effective_from;
-  ['road_30ft','road_40ft','road_60ft','road_80ft','road_100ft','near_highway'].forEach(function(f){var el=document.getElementById('dlc_'+f);if(el)el.value=d[f]||'';});
-  document.getElementById('dlcNotes').value=d.notes||'';
-  document.getElementById('dlcSubmitBtn').textContent='Update DLC Rate';
-  document.getElementById('dlcModal').classList.add('show');
-}
-function closeDlcModal(){document.getElementById('dlcModal').classList.remove('show');}
-document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeDlcModal();closeZoomBtn();}});
-document.getElementById('dlcModal')?.addEventListener('click',function(e){if(e.target===this)closeDlcModal();});
-</script>
+<script src="assets/js/app.js"></script>
 </body>
 </html>
