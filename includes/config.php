@@ -1,24 +1,25 @@
 <?php
 // ============================================================
-//  includes/config.php — PMS v4.0
+//  includes/config.php
 // ============================================================
-define('DB_HOST',    'localhost');
-define('DB_NAME',    'pms_db');
-define('DB_USER',    'pms_user');
-define('DB_PASS',    'YOUR_DB_PASSWORD');
-define('DB_CHARSET', 'utf8mb4');
+define('DB_HOST',     'localhost');
+define('DB_NAME',     'mingos_pms');
+define('DB_USER',     'mingos_pmsu');        // DB username
+define('DB_PASS',     'TixxHOTTXn9A');   // DB password
+define('DB_CHARSET',  'utf8mb4');
+
 define('UPLOAD_DIR', __DIR__ . '/../uploads/');
 define('UPLOAD_URL', 'uploads/');
 define('MAX_FILE_MB', 10);
 define('APP_NAME',   'PMS');
 define('APP_BRAND',  'PMS By Mingosoft Technologies');
-define('APP_VER',    '4.0');
+define('APP_VER',    '3.0');
 define('SESSION_LIFETIME', 3600 * 8);
 define('PLAN_BASIC_MONTHLY',    500);
 define('PLAN_BASIC_YEARLY',    5000);
 define('PLAN_ADVANCE_MONTHLY', 1200);
 define('PLAN_ADVANCE_YEARLY', 12000);
-
+ 
 function db(): PDO {
     static $pdo = null;
     if ($pdo === null) {
@@ -32,7 +33,7 @@ function db(): PDO {
             );
         } catch (PDOException $e) {
             http_response_code(500);
-            die('<div style="font-family:sans-serif;padding:2rem;max-width:600px;margin:2rem auto;border:1px solid #e0a0a0;border-radius:8px;background:#faeaea"><h2 style="color:#c05050">Database Connection Failed</h2><p style="color:#666">Please check your database configuration in includes/config.php</p><code style="font-size:.85rem;color:#888">'.htmlspecialchars($e->getMessage()).'</code></div>');
+            die('DB connection failed: '.$e->getMessage());
         }
     }
     return $pdo;
