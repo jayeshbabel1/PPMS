@@ -82,6 +82,28 @@ if ($action==='save_plan') {
         if ($am['path']) { $sql.=',approved_map_path=?,approved_map_name=?,approved_map_type=?'; array_push($p,$am['path'],$am['name'],$am['type']); }
         if ($isDev && !$isAdm) $sql.=',dev_status=\'pending\'';
         db()->prepare($sql.' WHERE id=?')->execute(array_merge($p,[$id]));
+      
+        // Chain documents — append new ones
+        if (!empty($_FILES['chain_docs']['name'][0])) {
+            try {
+                $chainUploads = handle_multiple_uploads($_FILES['chain_docs']);
+                $maxOrder = (int)db()->query(
+                    "SELECT COALESCE(MAX(sort_order),0) FROM plan_chain_documents WHERE plan_id=$id"
+                )->fetchColumn();
+                $ins = db()->prepare(
+                    'INSERT INTO plan_chain_documents
+                     (plan_id,file_path,file_name,file_type,file_size,sort_order,uploaded_by)
+                     VALUES (?,?,?,?,?,?,?)'
+                );
+                foreach ($chainUploads as $i => $cf) {
+                    $ins->execute([$id,$cf['path'],$cf['name'],$cf['type'],$cf['size'],$maxOrder+$i+1,$uid]);
+                }
+            } catch (RuntimeException $e) {
+                header('Location: index.php?page=edit&id='.$id.'&err='.urlencode($e->getMessage()));
+                exit;
+            }
+        }
+      
         audit('update','plans',$id,"Updated: $name");
         header('Location: index.php?msg=updated');
     } else {
@@ -357,8 +379,8 @@ if ($page==='home') {
     $pp=12;$cp=max(1,(int)($_GET['p']??1));$off=($cp-1)*$pp;
 
     $w=['1=1'];$b=[];
-    if ($tab==='developer') { $w[]='p.is_developer_plan=1';$w[]="p.dev_status='approved'"; }
-    else { $w[]='p.is_developer_plan=0'; }
+    
+     $w[]="(p.is_developer_plan = 0 OR (p.is_developer_plan = 1 AND p.dev_status = 'approved'))"; 
     if ($q) { $w[]='(p.plan_name LIKE ? OR p.aaraji_number LIKE ? OR v.name LIKE ?)'; $b=array_merge($b,["%$q%","%$q%","%$q%"]); }
     if ($vf) { $w[]='p.village_id=?'; $b[]=$vf; }
     if ($tf==='image') $w[]="p.file_type='image'";
@@ -370,7 +392,7 @@ if ($page==='home') {
     $st=db()->prepare("SELECT p.*,v.name AS village_name,v.tehsil,u.username AS dev_username,u.full_name AS dev_fullname FROM plans p LEFT JOIN revenue_villages v ON v.id=p.village_id LEFT JOIN users u ON u.id=p.created_by WHERE $ws ORDER BY p.created_at DESC LIMIT $pp OFFSET $off");$st->execute($b);$plans=$st->fetchAll();
 
     $villagesAll=db()->query('SELECT * FROM revenue_villages ORDER BY name')->fetchAll();
-    $stats=db()->query("SELECT COUNT(*) AS total,SUM(is_developer_plan=0) AS admin_plans,SUM(is_developer_plan=1 AND dev_status='approved') AS dev_plans,SUM(google_location IS NOT NULL AND google_location!='') AS located,COUNT(DISTINCT village_id) AS villages FROM plans")->fetch();
+    $stats=db()->query("SELECT COUNT(*) AS total,count(id) AS admin_plans,SUM(is_developer_plan=1 AND dev_status='approved') AS dev_plans,SUM(google_location IS NOT NULL AND google_location!='') AS located,COUNT(DISTINCT village_id) AS villages FROM plans")->fetch();
     $sponsoredPlans=[];
     try { $sp=db()->query("SELECT p.*,v.name AS village_name,u.full_name AS dev_fullname FROM plans p LEFT JOIN revenue_villages v ON v.id=p.village_id LEFT JOIN users u ON u.id=p.created_by WHERE p.is_sponsored=1 AND p.is_developer_plan=1 AND p.dev_status='approved' ORDER BY p.updated_at DESC LIMIT 6"); $sponsoredPlans=$sp->fetchAll(); } catch(Throwable){}
     $pd=compact('plans','total','pp','cp','q','vf','tf','tab','villagesAll','stats','off','sponsoredPlans');
@@ -476,9 +498,15 @@ function embedUrl(?string $url): string {
     }
     return '';
 }
-function currentFY(): string {
-    $now=new DateTime();
-    return ($now->format('m')>=4)?$now->format('Y').'-'.substr(($now->format('Y')+1),2):($now->format('Y')-1).'-'.substr($now->format('Y'),2);
+function currentFY() {
+    $year  = (int)date('Y');
+    $month = (int)date('m');
+
+    if ($month >= 4) {
+        return $year . '-' . substr(($year + 1), -2);
+    } else {
+        return ($year - 1) . '-' . substr($year, -2);
+    }
 }
 
 include __DIR__.'/includes/layout.php';
