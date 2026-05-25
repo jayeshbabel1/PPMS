@@ -2,7 +2,7 @@
     <?php if ($msg==='email_sent'): ?><div class="alert alert-success">Test email sent successfully!</div><?php endif; ?>
     <?php if ($err): ?><div class="alert alert-danger">Error: <?= e($err) ?></div><?php endif; ?>
 
-    <form method="POST" action="index.php">
+    <form method="POST" action="index.php" enctype="multipart/form-data">
       <input type="hidden" name="action" value="save_settings">
       <input type="hidden" name="csrf_token" value="<?= e($csrfTok) ?>">
 
@@ -48,6 +48,137 @@
           </div>
         </div>
       </div>
+
+      <!-- ══════════════════════════════════════════════════════════
+           PAYMENT / BANK SETTINGS
+      ══════════════════════════════════════════════════════════ -->
+      <div class="card" style="margin-bottom:1.1rem">
+        <div class="card-header">
+          <h3><i class="bx bx-credit-card-alt"></i> Payment &amp; Bank Settings</h3>
+          <span style="font-size:.7rem;color:var(--t4);font-weight:400">Shown to users during subscription payment</span>
+        </div>
+        <div class="card-body">
+
+          <!-- QR Code Upload -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.1rem">
+            <div>
+              <div class="form-field">
+                <label>Bank / UPI QR Code Image</label>
+                <div style="border:2px dashed var(--border);border-radius:var(--r-lg);padding:1.1rem;text-align:center;background:var(--surface2);position:relative;cursor:pointer"
+                     onclick="document.getElementById('qrFileInput').click()"
+                     id="qrDropZone">
+                  <input type="file" id="qrFileInput" name="bank_qr_file" accept="image/jpeg,image/png,image/webp"
+                         style="display:none" onchange="previewQR(this)">
+                  <div id="qrPlaceholder" style="<?= !empty($S['bank_qr_path']) ? 'display:none' : '' ?>">
+                    <div style="font-size:2.2rem;color:var(--t4);margin-bottom:.4rem">📷</div>
+                    <p style="font-size:.79rem;color:var(--t3);margin:0">Click to upload QR code</p>
+                    <small style="color:var(--t4)">JPG, PNG, WEBP — Max 5MB</small>
+                  </div>
+                  <div id="qrPreviewWrap" style="<?= empty($S['bank_qr_path']) ? 'display:none' : '' ?>">
+                    <img id="qrPreviewImg"
+                         src="<?= e($S['bank_qr_path']??'') ?>"
+                         alt="QR Code"
+                         style="max-height:160px;max-width:100%;border-radius:var(--r);object-fit:contain">
+                    <p style="font-size:.7rem;color:var(--t3);margin:.4rem 0 0">Click to change</p>
+                  </div>
+                </div>
+                <?php if (!empty($S['bank_qr_path'])): ?>
+                <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
+                  <input type="checkbox" name="bank_qr_remove" value="1" id="qrRemove"
+                         style="width:14px;height:14px;accent-color:var(--red)">
+                  <label for="qrRemove" style="font-size:.72rem;color:var(--red);text-transform:none;letter-spacing:0;cursor:pointer">Remove current QR code</label>
+                </div>
+                <?php endif; ?>
+              </div>
+            </div>
+
+            <!-- Live preview panel -->
+            <div style="display:flex;flex-direction:column;gap:7px">
+              <div style="font-size:.68rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">Preview Card</div>
+              <div style="border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;background:var(--surface);min-height:170px">
+                <?php if (!empty($S['bank_qr_path'])): ?>
+                <div style="text-align:center;margin-bottom:9px">
+                  <img src="<?= e($S['bank_qr_path']) ?>" alt="QR" style="height:90px;object-fit:contain;border-radius:6px">
+                </div>
+                <?php else: ?>
+                <div style="text-align:center;margin-bottom:9px;padding:14px 0;color:var(--t4);font-size:.78rem">No QR uploaded</div>
+                <?php endif; ?>
+                <?php if (!empty($S['bank_name'])): ?>
+                <div style="font-size:.75rem;font-weight:700;color:var(--t1)"><?= e($S['bank_name']) ?></div>
+                <?php endif; ?>
+                <?php if (!empty($S['bank_account_number'])): ?>
+                <div style="font-size:.71rem;color:var(--t3);font-family:'JetBrains Mono',monospace">A/C: <?= e($S['bank_account_number']) ?></div>
+                <?php endif; ?>
+                <?php if (!empty($S['bank_ifsc'])): ?>
+                <div style="font-size:.71rem;color:var(--t3);font-family:'JetBrains Mono',monospace">IFSC: <?= e($S['bank_ifsc']) ?></div>
+                <?php endif; ?>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bank Details Fields -->
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;margin-bottom:.5rem">
+            <div style="font-size:.68rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px">
+              <i class="bx bx-buildings"></i> Bank Details
+            </div>
+            <div class="form-grid">
+              <div class="form-field">
+                <label>Bank Name <span class="req">*</span></label>
+                <input class="input" type="text" name="bank_name"
+                       placeholder="e.g. State Bank of India"
+                       value="<?= e($S['bank_name']??'') ?>">
+              </div>
+              <div class="form-field">
+                <label>Account Number <span class="req">*</span></label>
+                <input class="input" type="text" name="bank_account_number"
+                       placeholder="e.g. 1234567890"
+                       value="<?= e($S['bank_account_number']??'') ?>"
+                       autocomplete="off">
+              </div>
+              <div class="form-field">
+                <label>Bank Branch</label>
+                <input class="input" type="text" name="bank_branch"
+                       placeholder="e.g. Jaipur Main Branch"
+                       value="<?= e($S['bank_branch']??'') ?>">
+              </div>
+              <div class="form-field">
+                <label>IFSC Code</label>
+                <input class="input" type="text" name="bank_ifsc"
+                       placeholder="e.g. SBIN0001234"
+                       value="<?= e($S['bank_ifsc']??'') ?>"
+                       style="text-transform:uppercase"
+                       oninput="this.value=this.value.toUpperCase()">
+              </div>
+              <div class="form-field">
+                <label>Account Type</label>
+                <select class="input" name="bank_account_type">
+                  <option value="">-- Select --</option>
+                  <option value="Savings" <?= ($S['bank_account_type']??'')==='Savings'?'selected':'' ?>>Savings Account</option>
+                  <option value="Current" <?= ($S['bank_account_type']??'')==='Current'?'selected':'' ?>>Current Account</option>
+                  <option value="OD" <?= ($S['bank_account_type']??'')==='OD'?'selected':'' ?>>OD / Overdraft</option>
+                  <option value="NRE" <?= ($S['bank_account_type']??'')==='NRE'?'selected':'' ?>>NRE Account</option>
+                  <option value="NRO" <?= ($S['bank_account_type']??'')==='NRO'?'selected':'' ?>>NRO Account</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label>UPI ID / Phone Pay / GPay</label>
+                <input class="input" type="text" name="bank_upi_id"
+                       placeholder="e.g. yourname@sbi"
+                       value="<?= e($S['bank_upi_id']??'') ?>">
+              </div>
+            </div>
+            <div class="form-field" style="margin-bottom:0">
+              <label>Payment Note / Instructions</label>
+              <textarea class="input" name="bank_note"
+                        placeholder="e.g. Please send payment screenshot to admin after transfer. Subscription will be activated within 24 hours."
+                        style="min-height:70px"><?= e($S['bank_note']??'') ?></textarea>
+              <small style="color:var(--t4);font-size:.7rem">This note will be shown to users on the subscription/payment page.</small>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <!-- END PAYMENT / BANK SETTINGS -->
 
       <!-- Theme -->
       <div class="card" style="margin-bottom:1.1rem">
@@ -95,3 +226,29 @@
       </form>
       <span style="font-size:.74rem;color:var(--t3);margin-left:8px">Sends test email to the admin email address above</span>
     </div>
+
+    <script>
+    /* QR code preview on file select */
+    function previewQR(input) {
+      if (!input.files || !input.files[0]) return;
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('qrPreviewImg').src = e.target.result;
+        document.getElementById('qrPlaceholder').style.display = 'none';
+        document.getElementById('qrPreviewWrap').style.display = '';
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+    /* Drag-over highlight */
+    var dz = document.getElementById('qrDropZone');
+    if (dz) {
+      dz.addEventListener('dragover', function(e){ e.preventDefault(); dz.style.borderColor='var(--primary)'; });
+      dz.addEventListener('dragleave', function(){ dz.style.borderColor='var(--border)'; });
+      dz.addEventListener('drop', function(e){
+        e.preventDefault(); dz.style.borderColor='var(--border)';
+        var fi = document.getElementById('qrFileInput');
+        fi.files = e.dataTransfer.files;
+        previewQR(fi);
+      });
+    }
+    </script>
