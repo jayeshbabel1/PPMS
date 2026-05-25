@@ -3,9 +3,9 @@
 //  includes/config.php
 // ============================================================
 define('DB_HOST',     'localhost');
-define('DB_NAME',     'mingos_pms');
-define('DB_USER',     'mingos_pmsu');        // DB username
-define('DB_PASS',     'TixxHOTTXn9A');   // DB password
+define('DB_NAME',     '');
+define('DB_USER',     '');        // DB username
+define('DB_PASS',     '');   // DB password
 define('DB_CHARSET',  'utf8mb4');
 
 define('UPLOAD_DIR', __DIR__ . '/../uploads/');
