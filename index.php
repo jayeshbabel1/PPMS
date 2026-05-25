@@ -319,11 +319,46 @@ if ($action==='save_settings') {
     require_login(); csrf_verify(); if (!is_admin()) { http_response_code(403); die('Forbidden'); }
     $keys=['marquee_text','marquee_enabled','marquee_speed','footer_text',
            'mail_method','mail_host','mail_port','mail_user','mail_pass','mail_from','mail_from_name','mail_admin_email','mail_error_notify',
-           'theme_primary','theme_bg','theme_surface','theme_border','theme_btn_text','theme_heading','theme_text','theme_sidebar_bg','theme_topbar_bg'];
+           'theme_primary','theme_bg','theme_surface','theme_border','theme_btn_text','theme_heading','theme_text','theme_sidebar_bg','theme_topbar_bg',
+           // Bank / Payment settings
+           'bank_name','bank_account_number','bank_branch','bank_ifsc','bank_account_type','bank_upi_id','bank_note'];
     foreach ($keys as $k) {
         $v = trim($_POST[$k]??'');
         if (in_array($k,['marquee_enabled','mail_error_notify'])) $v = isset($_POST[$k])?'1':'0';
+        if ($k==='bank_ifsc') $v = strtoupper($v);
         set_setting($k,$v);
+    }
+    // Handle QR code removal
+    if (isset($_POST['bank_qr_remove']) && $_POST['bank_qr_remove']==='1') {
+        $oldQr = get_setting('bank_qr_path','');
+        if ($oldQr) delete_upload($oldQr);
+        set_setting('bank_qr_path','');
+    }
+    // Handle QR code upload
+    if (!empty($_FILES['bank_qr_file']['name'])) {
+        $qrFile = $_FILES['bank_qr_file'];
+        if ($qrFile['error']===UPLOAD_ERR_OK) {
+            $mime=(new finfo(FILEINFO_MIME_TYPE))->file($qrFile['tmp_name']);
+            $allowed=['image/jpeg'=>'jpg','image/png'=>'png','image/webp'=>'webp'];
+            if (!isset($allowed[$mime])) {
+                header('Location: index.php?page=settings&err='.urlencode('QR file must be JPG, PNG, or WEBP.'));
+                exit;
+            }
+            if ($qrFile['size']>5*1024*1024) {
+                header('Location: index.php?page=settings&err='.urlencode('QR image must be under 5MB.'));
+                exit;
+            }
+            // Remove old QR if exists
+            $oldQr = get_setting('bank_qr_path','');
+            if ($oldQr) delete_upload($oldQr);
+            $ext=$allowed[$mime];
+            $safe=preg_replace('/[^a-z0-9_\-]/i','_',pathinfo($qrFile['name'],PATHINFO_FILENAME));
+            $fname='qr_'.date('Ymd_His').'_'.$safe.'_'.bin2hex(random_bytes(4)).'.'.$ext;
+            if (!is_dir(UPLOAD_DIR)) mkdir(UPLOAD_DIR,0755,true);
+            if (move_uploaded_file($qrFile['tmp_name'],UPLOAD_DIR.$fname)) {
+                set_setting('bank_qr_path',UPLOAD_URL.$fname);
+            }
+        }
     }
     audit('update','app_settings',null,'Settings saved');
     header('Location: index.php?page=settings&msg=saved'); exit;
@@ -457,7 +492,9 @@ if ($page==='settings') {
     if (!is_admin()){header('Location: index.php');exit;}
     $settingsKeys=['marquee_text','marquee_enabled','marquee_speed','footer_text',
                    'mail_method','mail_host','mail_port','mail_user','mail_pass','mail_from','mail_from_name','mail_admin_email','mail_error_notify',
-                   'theme_primary','theme_bg','theme_surface','theme_border','theme_btn_text','theme_heading','theme_text','theme_sidebar_bg','theme_topbar_bg'];
+                   'theme_primary','theme_bg','theme_surface','theme_border','theme_btn_text','theme_heading','theme_text','theme_sidebar_bg','theme_topbar_bg',
+                   // Bank / Payment settings
+                   'bank_name','bank_account_number','bank_branch','bank_ifsc','bank_account_type','bank_upi_id','bank_note','bank_qr_path'];
     $S=[];
     foreach ($settingsKeys as $k) $S[$k]=get_setting($k,'');
     $pd=compact('S');
