@@ -232,4 +232,113 @@ CREATE TABLE IF NOT EXISTS audit_log (
   CONSTRAINT fk_audit_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
+-- ============================================================
+--  PMS Mutation Module — Database Schema
+--  Run this file once before using mutation.php
+-- ============================================================
+
+USE pms_db;
+
+-- ── Mutation Applications ────────────────────────────────────
+CREATE TABLE IF NOT EXISTS mutation_applications (
+  id               INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  app_number       VARCHAR(30)   NOT NULL UNIQUE,       -- e.g. MUT/2025/0001
+  plan_id          INT UNSIGNED  DEFAULT NULL,
+  aaraji_number    VARCHAR(300)  NOT NULL,
+  village_id       INT UNSIGNED  DEFAULT NULL,
+
+  -- Status workflow
+  status           ENUM(
+    'submitted',
+    'processing',
+    'demand_note_generated',
+    'demand_note_paid',
+    'assigned_to_user',
+    'disposed'
+  ) NOT NULL DEFAULT 'submitted',
+  status_note      TEXT          DEFAULT NULL,
+  assigned_file_path VARCHAR(500) DEFAULT NULL,          -- file uploaded when assigned_to_user
+  assigned_file_name VARCHAR(255) DEFAULT NULL,
+
+  -- Registry & chain docs
+  registry_path    VARCHAR(500)  DEFAULT NULL,
+  registry_name    VARCHAR(255)  DEFAULT NULL,
+
+  -- Fees
+  application_fee  DECIMAL(10,2) DEFAULT 0.00,
+
+  -- Payment
+  payment_screenshot_path VARCHAR(500) DEFAULT NULL,
+  payment_screenshot_name VARCHAR(255) DEFAULT NULL,
+  txn_number       VARCHAR(100)  DEFAULT NULL,
+  txn_date         DATE          DEFAULT NULL,
+  txn_type         ENUM('IMPS','UPI','NEFT','RTGS','CHEQUE','DD','OTHER') DEFAULT NULL,
+  payment_verified TINYINT(1)    NOT NULL DEFAULT 0,
+
+  -- Meta
+  submitted_by     INT UNSIGNED  DEFAULT NULL,
+  reviewed_by      INT UNSIGNED  DEFAULT NULL,
+  reviewed_at      DATETIME      DEFAULT NULL,
+  created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  CONSTRAINT fk_mut_plan    FOREIGN KEY (plan_id)      REFERENCES plans(id) ON DELETE SET NULL,
+  CONSTRAINT fk_mut_village FOREIGN KEY (village_id)   REFERENCES revenue_villages(id) ON DELETE SET NULL,
+  CONSTRAINT fk_mut_user    FOREIGN KEY (submitted_by) REFERENCES users(id) ON DELETE SET NULL,
+  CONSTRAINT fk_mut_admin   FOREIGN KEY (reviewed_by)  REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+-- ── Mutation Transferees (multiple per application) ──────────
+CREATE TABLE IF NOT EXISTS mutation_transferees (
+  id           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  app_id       INT UNSIGNED NOT NULL,
+  sort_order   TINYINT UNSIGNED NOT NULL DEFAULT 1,
+  full_name    VARCHAR(150) NOT NULL,
+  gender       ENUM('male','female','other') NOT NULL DEFAULT 'male',
+  address      TEXT         NOT NULL,
+  email        VARCHAR(180) DEFAULT NULL,
+  aadhaar_no   VARCHAR(12)  DEFAULT NULL,               -- stored masked
+  contact      VARCHAR(20)  DEFAULT NULL,
+  created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_trf_app FOREIGN KEY (app_id) REFERENCES mutation_applications(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- ── Mutation Chain Documents ─────────────────────────────────
+CREATE TABLE IF NOT EXISTS mutation_chain_docs (
+  id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  app_id      INT UNSIGNED NOT NULL,
+  file_path   VARCHAR(500) NOT NULL,
+  file_name   VARCHAR(255) NOT NULL,
+  file_type   ENUM('image','pdf') NOT NULL,
+  file_size   INT UNSIGNED DEFAULT NULL,
+  sort_order  SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_mcd_app FOREIGN KEY (app_id) REFERENCES mutation_applications(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- ── Status Change Log ────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS mutation_status_log (
+  id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  app_id     INT UNSIGNED NOT NULL,
+  old_status VARCHAR(50) DEFAULT NULL,
+  new_status VARCHAR(50) NOT NULL,
+  note       TEXT        DEFAULT NULL,
+  changed_by INT UNSIGNED DEFAULT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_msl_app  FOREIGN KEY (app_id)     REFERENCES mutation_applications(id) ON DELETE CASCADE,
+  CONSTRAINT fk_msl_user FOREIGN KEY (changed_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+-- ── Auto-increment helper for app_number ────────────────────
+DROP TRIGGER IF EXISTS before_insert_mutation;
+DELIMITER $$
+CREATE TRIGGER before_insert_mutation
+BEFORE INSERT ON mutation_applications
+FOR EACH ROW
+BEGIN
+  DECLARE next_seq INT;
+  SELECT COUNT(*) + 1 INTO next_seq FROM mutation_applications;
+  SET NEW.app_number = CONCAT('MUT/', YEAR(NOW()), '/', LPAD(next_seq, 4, '0'));
+END$$
+DELIMITER ;
 -- NOTE: Run setup.php to create the first admin user.
