@@ -381,6 +381,150 @@ if ($action==='save_permissions') {
     header('Location: index.php?page=permissions&msg=saved'); exit;
 }
 
+// ── SAVE MUTATION APPLICATION ─────────────────────────────────
+if ($action==='save_mutation') {
+    require_login(); csrf_verify();
+    $uid = current_user()['id'];
+    $aaraji  = trim($_POST['aaraji_number']??'');
+    $village = (int)($_POST['village_id']??0)?:null;
+    $txnNo   = trim($_POST['txn_number']??'');
+    $txnDate = trim($_POST['txn_date']??'')?:null;
+    $txnType = $_POST['txn_type']??'';
+    $mutFee  = (float)get_setting('mutation_fee','500');
+
+    if (!$aaraji) { header('Location: index.php?page=mutation_apply&err=missing'); exit; }
+
+    // Upload registry
+    try { $reg = handle_upload($_FILES['registry_file']??['error'=>UPLOAD_ERR_NO_FILE]); }
+    catch (RuntimeException $e) { header('Location: index.php?page=mutation_apply&err=upload'); exit; }
+
+    // Upload payment screenshot
+    try { $pay = handle_upload($_FILES['payment_screenshot']??['error'=>UPLOAD_ERR_NO_FILE]); }
+    catch (RuntimeException $e) { header('Location: index.php?page=mutation_apply&err=upload'); exit; }
+
+    db()->prepare(
+        'INSERT INTO mutation_applications
+         (aaraji_number,village_id,registry_path,registry_name,txn_number,txn_date,txn_type,
+          payment_screenshot_path,payment_screenshot_name,application_fee,submitted_by)
+         VALUES(?,?,?,?,?,?,?,?,?,?,?)'
+    )->execute([
+        $aaraji,$village,
+        $reg['path'],$reg['name'],
+        $txnNo?:null,$txnDate,$txnType?:null,
+        $pay['path'],$pay['name'],
+        $mutFee,$uid
+    ]);
+    $mid = (int)db()->lastInsertId();
+
+    // Insert transferees
+    $names   = $_POST['trf_name']   ?? [];
+    $genders = $_POST['trf_gender'] ?? [];
+    $addrs   = $_POST['trf_address']?? [];
+    $emails  = $_POST['trf_email']  ?? [];
+    $aadhaars= $_POST['trf_aadhaar']?? [];
+    $contacts= $_POST['trf_contact']?? [];
+    $ins = db()->prepare(
+        'INSERT INTO mutation_transferees
+         (app_id,sort_order,full_name,gender,address,email,aadhaar_no,contact)
+         VALUES(?,?,?,?,?,?,?,?)'
+    );
+    foreach ($names as $i=>$n) {
+        if (trim($n)==='') continue;
+        $ins->execute([
+            $mid,$i+1,trim($n),
+            $genders[$i]??'male',
+            trim($addrs[$i]??''),
+            trim($emails[$i]??'')?:null,
+            trim(preg_replace('/\D/','',$aadhaars[$i]??''))?:null,
+            trim($contacts[$i]??'')?:null,
+        ]);
+    }
+
+    // Chain documents
+    if (!empty($_FILES['chain_docs']['name'][0])) {
+        try {
+            $cus = handle_multiple_uploads($_FILES['chain_docs']);
+            $cins = db()->prepare(
+                'INSERT INTO mutation_chain_docs
+                 (app_id,file_path,file_name,file_type,file_size,sort_order)
+                 VALUES(?,?,?,?,?,?)'
+            );
+            foreach ($cus as $i=>$cf) {
+                $cins->execute([$mid,$cf['path'],$cf['name'],$cf['type'],$cf['size'],$i+1]);
+            }
+        } catch (RuntimeException) {}
+    }
+
+    // Status log
+    db()->prepare(
+        'INSERT INTO mutation_status_log(app_id,old_status,new_status,note,changed_by)
+         VALUES(?,?,?,?,?)'
+    )->execute([$mid,null,'submitted','Application submitted',$uid]);
+
+    audit('create','mutation_applications',$mid,'Mutation applied: '.$aaraji);
+    header('Location: index.php?page=mutation&msg=mut_submitted'); exit;
+}
+
+// ── UPDATE MUTATION STATUS ────────────────────────────────────
+if ($action==='update_mutation_status') {
+    require_login(); csrf_verify(); if (!is_admin()) { http_response_code(403); die('Forbidden'); }
+    $mid    = (int)($_POST['mutation_id']??0);
+    $status = $_POST['new_status']??'';
+    $note   = trim($_POST['status_note']??'');
+    $valid  = ['submitted','processing','demand_note_generated','demand_note_paid','assigned_to_user','disposed'];
+    if (!$mid||!in_array($status,$valid)) { header('Location: index.php?page=mutation'); exit; }
+
+    $r = db()->prepare('SELECT status FROM mutation_applications WHERE id=?');
+    $r->execute([$mid]); $old = $r->fetchColumn();
+
+    $sql = 'UPDATE mutation_applications SET status=?,status_note=?';
+    $p   = [$status,$note?:null];
+
+    // Optional assigned file upload
+    if ($status==='assigned_to_user' && !empty($_FILES['assigned_file']['name'])) {
+        try {
+            $af = handle_upload($_FILES['assigned_file']);
+            if ($af['path']) { $sql.=',assigned_file_path=?,assigned_file_name=?'; array_push($p,$af['path'],$af['name']); }
+        } catch (RuntimeException) {}
+    }
+
+    db()->prepare($sql.' WHERE id=?')->execute(array_merge($p,[$mid]));
+    db()->prepare(
+        'INSERT INTO mutation_status_log(app_id,old_status,new_status,note,changed_by)VALUES(?,?,?,?,?)'
+    )->execute([$mid,$old,$status,$note?:null,current_user()['id']]);
+
+    audit('update','mutation_applications',$mid,"Status → $status");
+    header('Location: index.php?page=mutation_view&id='.$mid.'&msg=saved'); exit;
+}
+
+// ── VERIFY MUTATION PAYMENT ───────────────────────────────────
+if ($action==='verify_mutation_payment') {
+    require_login(); csrf_verify(); if (!is_admin()) { http_response_code(403); die('Forbidden'); }
+    $mid = (int)($_POST['mutation_id']??0);
+    db()->prepare('UPDATE mutation_applications SET payment_verified=1 WHERE id=?')->execute([$mid]);
+    audit('update','mutation_applications',$mid,'Payment verified');
+    header('Location: index.php?page=mutation_view&id='.$mid.'&msg=saved'); exit;
+}
+
+// ── DELETE MUTATION ───────────────────────────────────────────
+if ($action==='delete_mutation') {
+    require_login(); csrf_verify(); if (!is_admin()) { http_response_code(403); die('Forbidden'); }
+    $mid = (int)($_POST['mutation_id']??0);
+    $r   = db()->prepare('SELECT registry_path,payment_screenshot_path,assigned_file_path FROM mutation_applications WHERE id=?');
+    $r->execute([$mid]); $row=$r->fetch();
+    if ($row) {
+        delete_upload($row['registry_path']);
+        delete_upload($row['payment_screenshot_path']);
+        delete_upload($row['assigned_file_path']);
+        $docs = db()->prepare('SELECT file_path FROM mutation_chain_docs WHERE app_id=?');
+        $docs->execute([$mid]);
+        foreach ($docs->fetchAll() as $d) delete_upload($d['file_path']);
+        db()->prepare('DELETE FROM mutation_applications WHERE id=?')->execute([$mid]);
+    }
+    audit('delete','mutation_applications',$mid,'Mutation deleted');
+    header('Location: index.php?page=mutation&msg=deleted'); exit;
+}
+
 // ── TEST EMAIL ────────────────────────────────────────────────
 if ($action==='test_email') {
     require_login(); csrf_verify(); if (!is_admin()) { http_response_code(403); die('Forbidden'); }
@@ -398,7 +542,7 @@ if ($action==='test_email') {
 
 // ── ROUTING ──────────────────────────────────────────────────
 $page = $_GET['page'] ?? 'home';
-$validPages = ['home','login','add','edit','view','villages','profile','dlc','subscriptions','settings','permissions','approvals','reset_password'];
+ $validPages = ['home','login','add','edit','view','villages','profile','dlc','subscriptions','settings','permissions','approvals','reset_password','mutation','mutation_apply','mutation_view'];
 if (!in_array($page,$validPages)) $page = 'home';
 if (!in_array($page,['login','reset_password']) && !is_logged_in()) { header('Location: index.php?page=login'); exit; }
 if ($page==='login' && is_logged_in()) { header('Location: index.php'); exit; }
@@ -505,6 +649,50 @@ if ($page==='permissions') {
     $groups=[];
     foreach ($perms as $p) { $groups[$p['group']][]=$p; }
     $pd=compact('perms','groups');
+}
+if ($page==='mutation') {
+    $filterStatus = $_GET['status']??'';
+    $w=['1=1'];$b=[];
+    if ($filterStatus){$w[]='m.status=?';$b[]=$filterStatus;}
+    $uid=current_user()['id'];
+    if (!is_admin()) { $w[]='m.submitted_by=?'; $b[]=$uid; }
+    $ws=implode(' AND ',$w);
+    $st=db()->prepare(
+        "SELECT m.*,v.name AS village_name,
+                GROUP_CONCAT(t.full_name ORDER BY t.sort_order SEPARATOR '||') AS transferee_names
+         FROM mutation_applications m
+         LEFT JOIN revenue_villages v ON v.id=m.village_id
+         LEFT JOIN mutation_transferees t ON t.app_id=m.id
+         WHERE $ws
+         GROUP BY m.id
+         ORDER BY m.created_at DESC"
+    );
+    $st->execute($b);
+    $mutations = $st->fetchAll();
+    $pd = compact('mutations','filterStatus');
+}
+
+if ($page==='mutation_apply') {
+    $villagesAll = db()->query('SELECT * FROM revenue_villages ORDER BY name')->fetchAll();
+    $pd = compact('villagesAll');
+}
+
+if ($page==='mutation_view') {
+    $mid = (int)($_GET['id']??0);
+    $uid = current_user()['id'];
+    $s = db()->prepare(
+        "SELECT m.*,v.name AS village_name FROM mutation_applications m
+         LEFT JOIN revenue_villages v ON v.id=m.village_id
+         WHERE m.id=? AND (? OR m.submitted_by=?)"
+    );
+    $s->execute([$mid, is_admin()?1:0, $uid]);
+    $mutApp = $s->fetch();
+    if (!$mutApp) { header('Location: index.php?page=mutation'); exit; }
+    $ts = db()->prepare('SELECT * FROM mutation_transferees WHERE app_id=? ORDER BY sort_order');
+    $ts->execute([$mid]); $transferees = $ts->fetchAll();
+    $cs = db()->prepare('SELECT * FROM mutation_chain_docs WHERE app_id=? ORDER BY sort_order');
+    $cs->execute([$mid]); $mutChainDocs = $cs->fetchAll();
+    $pd = compact('mutApp','transferees','mutChainDocs');
 }
 if ($page==='approvals') {
     $pending=db()->query("SELECT p.*,v.name AS village_name,u.username AS dev_name,u.full_name AS dev_fullname FROM plans p LEFT JOIN revenue_villages v ON v.id=p.village_id LEFT JOIN users u ON u.id=p.created_by WHERE p.is_developer_plan=1 AND p.dev_status='pending' ORDER BY p.created_at ASC")->fetchAll();
