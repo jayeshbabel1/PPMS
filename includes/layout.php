@@ -112,6 +112,9 @@ body{display:flex;align-items:center;justify-content:center;min-height:100vh;pad
       <div class="nav-section">Data</div>
       <a class="nav-item <?= $page==='villages'?'active':'' ?>" href="index.php?page=villages"><span class="ni"><i class="bx bx-building-house"></i></span> Revenue Villages</a>
       <a class="nav-item <?= $page==='dlc'?'active':'' ?>" href="index.php?page=dlc"><span class="ni"><i class="bx bx-bar-chart-alt-2"></i></span> DLC Rates</a>
+      <a class="nav-item <?= in_array($page,['mutation','mutation_apply','mutation_view'])?'active':'' ?>" href="index.php?page=mutation">
+    <span class="ni"><i class="bx bx-transfer-alt"></i></span> Mutation
+  </a>
       <?php if (is_admin()): ?>
       <?php $pendCount=0; try{$pendCount=(int)db()->query("SELECT COUNT(*) FROM plans WHERE is_developer_plan=1 AND dev_status='pending'")->fetchColumn();}catch(Throwable){} ?>
       <div class="nav-section">Admin</div>
@@ -146,7 +149,7 @@ body{display:flex;align-items:center;justify-content:center;min-height:100vh;pad
       <div class="topbar-left">
         <button class="sidebar-toggle" onclick="toggleSidebar()" title="Menu">&#9776;</button>
         <span class="topbar-title">
-          <?php $tt=['home'=>'Dashboard','add'=>is_developer()&&!is_admin()?'Submit Plan':'Add Plan','edit'=>'Edit Plan','view'=>'Plan Detail','villages'=>'Revenue Villages','profile'=>'Profile','dlc'=>'DLC Rates','subscriptions'=>'Users &amp; Subscriptions','settings'=>'Settings','permissions'=>'Permission Matrix','approvals'=>'Plan Approvals'];
+          <?php $tt=['home'=>'Dashboard','add'=>is_developer()&&!is_admin()?'Submit Plan':'Add Plan','edit'=>'Edit Plan','view'=>'Plan Detail','villages'=>'Revenue Villages','profile'=>'Profile','dlc'=>'DLC Rates','subscriptions'=>'Users &amp; Subscriptions','settings'=>'Settings','permissions'=>'Permission Matrix','approvals'=>'Plan Approvals','mut_submitted' => ['success','Mutation application submitted successfully.'],'mutation'=> 'Mutation Applications','mutation_apply' => 'Apply for Mutation','mutation_view'  => 'Mutation Detail'];
           echo $tt[$page]??ucfirst($page); ?>
         </span>
       </div>
@@ -159,7 +162,7 @@ body{display:flex;align-items:center;justify-content:center;min-height:100vh;pad
     <main class="page-content">
 
     <?php /* Toast messages */
-    $toastMap=['created'=>['success','Plan registered.'],'updated'=>['success','Plan updated.'],'deleted'=>['success','Plan deleted.'],'saved'=>['success','Saved.'],'pwchanged'=>['success','Password changed.'],'dlc_saved'=>['success','DLC rates saved.'],'dlc_deleted'=>['success','DLC record deleted.'],'sub_saved'=>['success','Subscription saved.'],'sub_deleted'=>['success','Subscription deleted.'],'user_created'=>['success','User created.'],'chain_deleted'=>['success','Chain doc removed.'],'upgrade_requested'=>['info','Upgrade request submitted.'],'upgrade_reviewed'=>['success','Request reviewed.'],'imported'=>['success','DLC imported: '.((int)($_GET['ok']??0)).' rows, '.((int)($_GET['skip']??0)).' skipped.'],'reviewed'=>['success','Plan reviewed.'],'dev_submitted'=>['info','Plan submitted for approval. Admin will review.'],'email_sent'=>['success','Test email sent successfully.']];
+    $toastMap=['created'=>['success','Plan registered.'],'updated'=>['success','Plan updated.'],'deleted'=>['success','Plan deleted.'],'saved'=>['success','Saved.'],'pwchanged'=>['success','Password changed.'],'dlc_saved'=>['success','DLC rates saved.'],'dlc_deleted'=>['success','DLC record deleted.'],'sub_saved'=>['success','Subscription saved.'],'sub_deleted'=>['success','Subscription deleted.'],'user_created'=>['success','User created.'],'chain_deleted'=>['success','Chain doc removed.'],'upgrade_requested'=>['info','Upgrade request submitted.'],'upgrade_reviewed'=>['success','Request reviewed.'],'imported'=>['success','DLC imported: '.((int)($_GET['ok']??0)).' rows, '.((int)($_GET['skip']??0)).' skipped.'],'reviewed'=>['success','Plan reviewed.'],'dev_submitted'=>['info','Plan submitted for approval. Admin will review.'],'email_sent'=>['success','Test email sent successfully.'],'mut_submitted' => ['success','Mutation application submitted successfully.'],'mut_updated'   => ['success','Application updated.']];
     if (isset($toastMap[$msg])): [$tc,$tm]=$toastMap[$msg]; ?>
     <div class="toast-wrap" id="toastWrap"><div class="toast <?= $tc ?>"><?= $tm ?> <button onclick="this.closest('.toast-wrap').remove()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--t3);font-size:1rem;font-weight:700">X</button></div></div>
     <script>setTimeout(function(){var t=document.getElementById('toastWrap');if(t)t.remove();},5000);</script>
@@ -334,6 +337,14 @@ require __DIR__.'/layout/settingslayout.php';
 <?php
 require __DIR__.'/layout/profilelayout.php';
 ?>
+    <?php elseif ($page==='mutation'): ?>
+  <?php require __DIR__.'/layout/mutationlayout.php'; ?>
+
+  <?php elseif ($page==='mutation_apply'): ?>
+  <?php require __DIR__.'/layout/mutationformlayout.php'; ?>
+
+  <?php elseif ($page==='mutation_view'): ?>
+  <?php require __DIR__.'/layout/mutationviewlayout.php'; ?>
 
     <?php endif; /* end page switch */ ?>
 
